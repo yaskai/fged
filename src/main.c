@@ -1,7 +1,7 @@
 #include "raylib.h"
 #include "include/resource_dir.h"
 #include "config.h"
-#include "ui.h"
+#include "app.h"
 
 int main() {
 	bool exit_window = false;
@@ -19,25 +19,21 @@ int main() {
 	ConfRead(&conf, "options.conf");
 	InitWindow(conf.window_width, conf.window_height, "Fishgame Editor");
 	SetTargetFPS(conf.refresh_rate);
+	SetExitKey(KEY_F4);
 
 	SearchAndSetResourceDir("resources");
 
-	Ui ui = {0};
-	UiInit(&ui, &conf);
+	App app = AppInit(&conf);
 
 	while(!exit_window) {
-		if(ui.flags & UI_QUIT_REQ || WindowShouldClose()) exit_window = true;
-		float delta_time = GetFrameTime();
+		exit_window = (app.ui.flags & UI_QUIT_REQ || WindowShouldClose());
 
-		BeginDrawing();
-		ClearBackground(BLACK);
-
-		UiUpdate(&ui, delta_time);
-
-		EndDrawing();
+		AppUpdate(&app);
+		AppDraw(&app);
 	}
 
 	CloseWindow();
+	AppClose(&app);
 
 	return 0;
 }
