@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "raylib.h"
 #include "config.h"
+#include "cursor.h"
 
 #ifndef UI_H_
 #define UI_H_
@@ -20,6 +21,7 @@ enum PANELS {
 
 typedef struct {
 	uint8_t flags;
+	int8_t active_dropdown;
 
 	unsigned int ww, wh;
 
@@ -28,14 +30,25 @@ typedef struct {
 	
 	Rectangle dropwdown_recs[DROP_COLS];
 	char *dropdown_text[DROP_COLS][DROP_ROWS];
+
+	Rectangle cam_slider_recs[2];
+	char *cam_slider_text[4];
+
+	Camera2D *cam;
 } Ui;
 
-void UiInit(Ui *ui, Config *conf);
-void UiUpdate(Ui *ui, float dt);
+void UiInit(Ui *ui, Config *conf, Camera2D *cam);
+void UiUpdate(Ui *ui, Cursor *cursor, float dt);
 
 void QuitPrompt(Ui *ui);
 
+void StyleInit(Ui *ui, Config *conf);
+void StyleLoadFromId(Ui *ui, uint8_t id);
+void StyleLoadFromName(Ui *ui, char *name);
+
 void PanelsInit(Ui *ui);
 void DropdownsInit(Ui *ui);
+void CamSlidersInit(Ui *ui);
+void ScrollPanelInit(Ui *ui);
 
 #endif

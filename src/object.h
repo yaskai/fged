@@ -7,7 +7,7 @@
 typedef struct {
 	uint8_t flags;
 
-	char name[16];
-} ObjectEntry;
+	Rectangle bounds;
+} Object;
 
 #endif

@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "raylib.h"
+#include "cursor.h"
 #include "ui.h"
+#include "map.h"
 
 #ifndef APP_H_
 #define APP_H_
@@ -10,14 +12,15 @@ typedef struct {
 
 	float delta_time;
 		
-	Camera2D cam;
-
-	Ui ui;
-
 	Config *conf;
+
+	Camera2D cam;
+	Cursor cursor;
+	Map map;
+	Ui ui;
 } App;
 
-App AppInit(Config *conf);
+void AppInit(App *app, Config *conf);
 void AppUpdate(App *app);
 void AppDraw(App *app);
 void AppClose(App *app);
