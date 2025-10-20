@@ -51,6 +51,7 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
 	PanelsInit(ui);
 	DropdownsInit(ui);
 	CamSlidersInit(ui);
+	//ScrollPanelInit(ui);
 }
 
 void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
@@ -268,7 +269,7 @@ void CamSlidersInit(Ui *ui) {
 		// Horizontal
 		(Rectangle) {
 			.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
-			.y = ui->panel_recs[PANEL_BOT].y - 32, 
+			.y = ui->panel_recs[PANEL_BOT].y, 
 			.width = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_LFT].width,
 			.height = 32
 		},
@@ -291,9 +292,20 @@ void CamSlidersInit(Ui *ui) {
 // Set dropdown menu data (rectangles)
 void ScrollPanelInit(Ui *ui) {
 	Rectangle view_rec = (Rectangle) {
-	};	
+		.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
+		.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height,
+		.width = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
+		.height = ui->panel_recs[PANEL_BOT].y - ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height
+	};
 
 	Rectangle content_rec = (Rectangle) {
+		.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
+		.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height,
+		.width = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
+		.height = ui->panel_recs[PANEL_BOT].y - ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height
 	};
+
+	ui->cam_slider_recs[0] = view_rec;
+	ui->cam_slider_recs[1] = content_rec;
 }
 

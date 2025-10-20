@@ -42,7 +42,7 @@ void AppDraw(App *app) {
 
 	// Draw with camera tranformations
 	BeginMode2D(app->cam);
-	MapDrawGrid(&app->map);
+	MapDraw(&app->map);
 	CursorDraw(&app->cursor);
 	EndMode2D();
 	

@@ -6,20 +6,21 @@
 
 #define CURSOR_ON_UI		0x01
 #define CURSOR_PAN			0x02
-#define CURSOR_BOX_SET		0x04
-#define CURSOR_BOX_EDIT		0x08
+#define CURSOR_SELECTION	0x04
 
 typedef struct {
 	uint8_t flags;
 
 	Vector2 screen_pos;
 	Vector2 world_pos;
+
 	Vector2 pan_pos;
+	Vector2 box_origin;
 
 	Color color;
 
-	Rectangle selection_rec;
-
+	Rectangle selection_rec_edit;
+	Rectangle selection_rec_final;
 } Cursor;
 
 void CursorInit(Cursor *cursor);
@@ -29,5 +30,7 @@ void CursorCameraControls(Cursor *cursor, Camera2D *cam, float dt);
 
 void CursorDraw(Cursor *cursor);
 void CursorDrawPointer(Cursor *cursor);
+
+void SelectionBox(Cursor *cursor);
 
 #endif

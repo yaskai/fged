@@ -12,6 +12,7 @@ void MapUpdate(Map *map) {
 }
 
 void MapDraw(Map *map) {
+	MapDrawGrid(map);
 }
 
 void MapClose(Map *map) {
@@ -41,8 +42,8 @@ void MapDrawGrid(Map *map) {
 		uint16_t c = i % 16;
 		uint16_t r = i / 16;
 
-		float tile_size = 128;
-		DrawRectangleLines(c * tile_size, r * tile_size, tile_size, tile_size, RAYWHITE);
+		float tile_size = 256;
+		DrawRectangleLines(c * tile_size, r * tile_size, tile_size, tile_size, GRAY);
 	}
 }
 
