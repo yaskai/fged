@@ -14,6 +14,7 @@ typedef struct {
 
 	Vector2 screen_pos;
 	Vector2 world_pos;
+	Vector2 pan_pos;
 
 	Color color;
 

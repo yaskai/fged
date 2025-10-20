@@ -117,21 +117,13 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 		}
 	}
 
-	/*
-	Rectangle scroll_panel_rec = (Rectangle) {
-		.x = ui->cam_slider_recs[0].x,
-		.y = ui->cam_slider_recs[0].y
-	};
-
-	GuiScrollPanel(, const char *text, Rectangle content, Vector2 *scroll, Rectangle *view)
-	*/
+	// TODO:
+	// scroll panel for camera movement
 }
 
-// Update and render quit prompt screen
-// user can confirm to exit app or cancel and return 
+// Update and render quit prompt screen, user can confirm to exit app or cancel and return 
 void QuitPrompt(Ui *ui) {
-	// Set message box rect
-	// should appear in the center of the screen
+	// Set message box rect, should appear in the center of the screen
 	Rectangle rec = (Rectangle){ ui->ww * 0.5f - 250, ui->wh * 0.5f - 150, 500, 300 };
 
 	// Get input, draw UI element
@@ -155,8 +147,7 @@ void QuitPrompt(Ui *ui) {
 	}
 }
 
-// Load style set from "options.conf"
-// Colorful messages sent to terminal displaying style info
+// Load style set from "options.conf", colorful messages sent to terminal displaying style info
 void StyleInit(Ui *ui, Config *conf) {
 	printf("\e[0;33mSetting GUI style...\e[0;37m\n");
 
@@ -297,6 +288,7 @@ void CamSlidersInit(Ui *ui) {
 	// Set text
 }
 
+// Set dropdown menu data (rectangles)
 void ScrollPanelInit(Ui *ui) {
 	Rectangle view_rec = (Rectangle) {
 	};	

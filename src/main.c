@@ -1,10 +1,14 @@
+#include <stdio.h>
 #include "raylib.h"
 #include "config.h"
 #include "app.h"
+#include "intro.h"
 
 int main() {
 	// Main loop runs while false
 	bool exit_window = false;
+
+	PrintIntroImg("resources/intro_img2.txt");
 
 	// Initialize config struct with some default values
 	Config conf = (Config) {
