@@ -22,12 +22,19 @@ void CursorUpdate(Cursor *cursor, Camera2D *cam, float dt) {
 	CursorCameraControls(cursor, cam, dt);
 
 	// Update selection box
-	if(IsMouseButtonDown(MOUSE_RIGHT_BUTTON)) SelectionBox(cursor);
+	if(IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+		SelectionBox(cursor);
+
 	if(IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
 		cursor->selection_rec_final = cursor->selection_rec_edit;
 
 		cursor->box_origin = (Vector2){0};
 		cursor->selection_rec_edit = (Rectangle){0};
+
+		// Enforce minimum area
+		if(cursor->selection_rec_final.width * cursor->selection_rec_final.height <= (4096 * 2))
+			cursor->selection_rec_final = (Rectangle){0};
+
 		cursor->flags &= ~CURSOR_SELECTION;
 	}
 }
@@ -64,6 +71,7 @@ void CursorDraw(Cursor *cursor) {
 	// Draw selection box
 	if(cursor->flags & CURSOR_SELECTION) {
 		DrawRectangleRec(cursor->selection_rec_edit, ColorAlpha(SKYBLUE, 0.75f));
+		DrawRectangleLinesEx(cursor->selection_rec_edit, 2, BLUE);
 	} else {
 		DrawRectangleRec(cursor->selection_rec_final, ColorAlpha(SKYBLUE, 0.25f));
 		DrawRectangleLinesEx(cursor->selection_rec_final, 2, GRAY);

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "raylib.h"
+#include "raymath.h"
 #include "ui.h"
 #include "config.h"
 #include "cursor.h"
@@ -10,13 +11,19 @@
 #include "include/raygui.h"
 #undef RAYGUI_IMPLEMENTATION
 
+#define GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
+#include "gui_window_file_dialog.h"
+
+GuiWindowFileDialogState file_diag_state;
+Rectangle file_diag_rect;
+
 // * 
 // Dropdown button events: 
 // to be stored in the "dropdown_fn" array
 // functions are called on button press respective to index
 void fn_new(Ui *ui)  {}
 void fn_save(Ui *ui) {}
-void fn_open(Ui *ui) {}
+void fn_open(Ui *ui) { ui->flags |= UI_FILE_DIAG;   }
 void fn_quit(Ui *ui) { ui->flags ^= UI_QUIT_PROMPT; }
 
 void fn_undo(Ui *ui) {}
@@ -31,11 +38,75 @@ typedef void(*DropdownEventFn)(Ui *ui);
 // depth reduced by one as buttons for "file", "edit" and "help" don't need functions
 DropdownEventFn dropdown_fn[DROP_COLS][DROP_ROWS-1];
 
+// Custom slider implementation
+void SliderUpdate(Slider *slider, float mouse_pos[2]) {
+	// Clear state flags
+	slider->flags = 0;
+
+	Vector2 v_mouse_pos = (Vector2) { mouse_pos[AXIS_HORIZONTAL], mouse_pos[AXIS_VERTICAL] };
+
+	float pos  = (slider->axis) ? slider->handle.x : slider->handle.y;
+	float size = (slider->axis) ? slider->handle.width : slider->handle.height;
+
+	// Fetch color values from raygui implemention
+	Color base_bg = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL)); 
+	Color base_fg = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
+
+	Color handle_bg = GetColor(GuiGetStyle(SLIDER, BASE_COLOR_NORMAL));
+	Color handle_fg = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
+
+	// Draw base rectangle
+	GuiDrawRectangle(slider->base, 2, base_fg, base_fg);
+
+	// Collision checks
+	if(CheckCollisionPointRec(v_mouse_pos, slider->base)) {
+		slider->flags |= SLIDER_HOVERED;
+
+		// Update handle position on press
+		if(CheckCollisionPointRec(v_mouse_pos, slider->handle) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			slider->flags |= SLIDER_PRESSED;
+			pos = mouse_pos[slider->axis] - size * 0.5f;
+		}
+	}
+
+	// Find min and max values for slider's axis  
+	float pos_min, pos_max;
+	switch(slider->axis) {
+		case AXIS_HORIZONTAL:
+			pos_min = slider->base.x;
+			pos_max = slider->base.x + slider->base.width - slider->handle.width; 
+			break;
+
+		case AXIS_VERTICAL:
+			pos_min = slider->base.y;
+			pos_max = slider->base.y + slider->base.height - slider->handle.height; 
+			break;
+	}
+	
+	// Clamp position
+	pos = Clamp(pos, pos_min, pos_max);
+
+	// Set handle rect position to new value
+	switch(slider->axis) {
+		case AXIS_HORIZONTAL:
+			slider->handle.x = pos;
+			break;		
+
+		case AXIS_VERTICAL:
+			slider->handle.y = pos;
+			break;
+	}
+
+	// Update control value if needed
+}
+
+// Initialize all elements, set style values, etc.
 void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
-	// Load and initialize style
+	// Load and initialize style StyleInit(ui, conf);
 	StyleInit(ui, conf);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
 
+	// Load and set font
 	Font font = LoadFontEx("resources/blex.ttf", 32, 0, 0);
 	SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
 	GuiSetFont(font);
@@ -52,8 +123,10 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
 	DropdownsInit(ui);
 	CamSlidersInit(ui);
 	//ScrollPanelInit(ui);
+	FileDiagInit(ui);
 }
 
+// Update, manage, and render active elements
 void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 	cursor->flags &= ~CURSOR_ON_UI;
 
@@ -67,7 +140,9 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 	}
 
 	// Quit prompt
-	if(IsKeyPressed(KEY_ESCAPE)) ui->flags ^= UI_QUIT_PROMPT;
+	if(IsKeyPressed(KEY_ESCAPE) && ui->flags == 0) 
+		ui->flags ^= UI_QUIT_PROMPT;
+
 	if(ui->flags & UI_QUIT_PROMPT) QuitPrompt(ui);
 
 	// Dropdown menus
@@ -89,7 +164,7 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 	}
 
 	// Dropdown submenu if active ("active_dropdown" value is non-negative) 
-	if(ui->active_dropdown > -1) {
+	if(ui->active_dropdown > -1 && ui->flags == 0) {
 		for(int8_t i = 1; i < DROP_ROWS; i++) {
 			// Break on empty strings (char[0] == string terminator)
 			// dropdown buttons should be contiguous and labelled,
@@ -120,6 +195,14 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	// TODO:
 	// scroll panel for camera movement
+
+	// File dialogue (for importing and exporting maps)
+	// lock cursor edit actions while dialogue is active
+	file_diag_state.windowActive = (ui->flags & UI_FILE_DIAG);
+	if(ui->flags & UI_FILE_DIAG) {
+		FileDiag(ui);
+		cursor->flags |= CURSOR_ON_UI;
+	}
 }
 
 // Update and render quit prompt screen, user can confirm to exit app or cancel and return 
@@ -146,6 +229,32 @@ void QuitPrompt(Ui *ui) {
 			ui->flags |= UI_QUIT_REQ;
 			break;
 	}
+}
+
+// Dialogue window for importing and exporting files 
+void FileDiag(Ui *ui) {
+	// Clear dropdowns
+	ui->active_dropdown = -1;
+
+	// Adjust text size
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+
+	// Update state and render
+	GuiWindowFileDialog(&file_diag_state);	
+
+	// On file option press:
+	// TODO:
+	// integrate with file I/O
+	if(file_diag_state.SelectFilePressed) {
+	}
+
+	if(IsKeyPressed(KEY_ESCAPE))
+		file_diag_state.windowActive = 0;
+
+	if(!file_diag_state.windowActive)
+		ui->flags &= ~UI_FILE_DIAG;
+
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
 }
 
 // Load style set from "options.conf", colorful messages sent to terminal displaying style info
@@ -307,5 +416,11 @@ void ScrollPanelInit(Ui *ui) {
 
 	ui->cam_slider_recs[0] = view_rec;
 	ui->cam_slider_recs[1] = content_rec;
+}
+
+void FileDiagInit(Ui *ui) {
+	file_diag_state = InitGuiWindowFileDialog(GetWorkingDirectory());
+	file_diag_rect = (Rectangle){ ui->ww * 0.5f - 600, ui->wh * 0.5f - 400, 1200, 800 };
+	file_diag_state.windowBounds = file_diag_rect;
 }
 
