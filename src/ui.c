@@ -39,77 +39,86 @@ typedef void(*DropdownEventFn)(Ui *ui);
 DropdownEventFn dropdown_fn[DROP_COLS][DROP_ROWS-1];
 
 // Custom slider implementation
-void SliderUpdate(Slider *slider, float mouse_pos[2]) {
+void SliderUpdate(Slider *slider) {
 	// Clear state flags
 	slider->flags = 0;
-
-	Vector2 v_mouse_pos = (Vector2) { mouse_pos[AXIS_HORIZONTAL], mouse_pos[AXIS_VERTICAL] };
-
-	float pos  = (slider->axis) ? slider->handle.x : slider->handle.y;
-	float size = (slider->axis) ? slider->handle.width : slider->handle.height;
-
-	// Fetch color values from raygui implemention
-	Color base_bg = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL)); 
-	Color base_fg = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
-
-	Color handle_bg = GetColor(GuiGetStyle(SLIDER, BASE_COLOR_NORMAL));
-	Color handle_fg = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
-
-	// Draw base rectangle
-	GuiDrawRectangle(slider->base, 2, base_fg, base_fg);
-
-	// Collision checks
-	if(CheckCollisionPointRec(v_mouse_pos, slider->base)) {
-		slider->flags |= SLIDER_HOVERED;
-
-		// Update handle position on press
-		if(CheckCollisionPointRec(v_mouse_pos, slider->handle) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-			slider->flags |= SLIDER_PRESSED;
-			pos = mouse_pos[slider->axis] - size * 0.5f;
-		}
-	}
-
-	// Find min and max values for slider's axis  
-	float pos_min, pos_max;
-	switch(slider->axis) {
-		case AXIS_HORIZONTAL:
-			pos_min = slider->base.x;
-			pos_max = slider->base.x + slider->base.width - slider->handle.width; 
-			break;
-
-		case AXIS_VERTICAL:
-			pos_min = slider->base.y;
-			pos_max = slider->base.y + slider->base.height - slider->handle.height; 
-			break;
-	}
 	
-	// Clamp position
-	pos = Clamp(pos, pos_min, pos_max);
+	// Track previous x value
+	float x_prev = slider->percent;
+	
+	// Fetch color values from raygui implemention
+	Color base_bg = GetColor(GuiGetStyle(SLIDER, BASE_COLOR_NORMAL)); 
+	Color base_fg = GetColor(GuiGetStyle(SLIDER, BORDER_COLOR_NORMAL));
 
-	// Set handle rect position to new value
-	switch(slider->axis) {
-		case AXIS_HORIZONTAL:
-			slider->handle.x = pos;
-			break;		
+	Color handle_bg = GetColor(GuiGetStyle(SLIDER, BASE_COLOR_DISABLED));
+	Color handle_fg = GetColor(GuiGetStyle(SLIDER, BORDER_COLOR_NORMAL));
 
-		case AXIS_VERTICAL:
-			slider->handle.y = pos;
-			break;
+	// Draw base and handle rectangles
+	GuiDrawRectangle(slider->base, 2, base_fg, base_bg);
+
+	// Check for hover/press
+	if(CheckCollisionPointRec(GetMousePosition(), slider->base)) {
+		slider->flags |= SLIDER_BG_HOVERED;
+
+		Vector2 mouse_delta = GetMouseDelta();
+		Rectangle handle_rec = slider->handle;
+		
+		handle_rec.x += mouse_delta.x * 0.5f;
+		handle_rec.y += mouse_delta.y * 0.5f;
+
+		handle_rec.width += mouse_delta.x;
+		handle_rec.height += mouse_delta.y;
+		
+		if(CheckCollisionPointRec(GetMousePosition(), handle_rec)) {
+			slider->flags |= SLIDER_HOVERED;
+
+			handle_bg = GetColor(GuiGetStyle(SLIDER, BASE_COLOR_FOCUSED));
+			handle_fg = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_FOCUSED));
+
+			if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+				slider->flags |= SLIDER_PRESSED;
+
+				handle_bg = GetColor(GuiGetStyle(SLIDER, BASE_COLOR_PRESSED));
+				handle_fg = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_PRESSED));
+			}
+		}	
 	}
+
+	// Update position on press
+	if(slider->flags & SLIDER_PRESSED) {
+		slider->handle.x = GetMouseX() - slider->handle.width * 0.5f;
+	}
+
+	// Clamp x to base in bounds
+	slider->handle.x = 
+		Clamp(slider->handle.x, slider->base.x, slider->base.x + slider->base.width - slider->handle.width);
 
 	// Update control value if needed
+	if(slider->handle.x != x_prev && 0 == 1) {
+		float xrel = slider->handle.x - slider->base.x;
+		float percent = (xrel / ((slider->base.width) - slider->handle.width) * 100);
+
+		slider->percent = percent; 
+
+		float val = ((slider->control_bounds[1] - slider->control_bounds[0]) * percent) / 100;
+		val = Clamp(val, slider->control_bounds[0], slider->control_bounds[1]);
+		*slider->control = val;
+	}
+
+	// Draw handle rectangle
+	GuiDrawRectangle(slider->handle, 2, handle_fg, handle_bg);
 }
 
 // Initialize all elements, set style values, etc.
 void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
 	// Load and initialize style StyleInit(ui, conf);
-	StyleInit(ui, conf);
+	UiStyleInit(ui, conf);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
 
 	// Load and set font
-	Font font = LoadFontEx("resources/blex.ttf", 32, 0, 0);
-	SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
-	GuiSetFont(font);
+	ui->font  = LoadFontEx("resources/blex.ttf", 32, 0, 0);
+	SetTextureFilter(ui->font.texture, TEXTURE_FILTER_TRILINEAR);
+	GuiSetFont(ui->font);
 
 	// Set window dimensions
 	ui->ww = conf->window_width;
@@ -119,11 +128,11 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
 	ui->cam = cam;
 	
 	// Initialize elements
-	PanelsInit(ui);
-	DropdownsInit(ui);
-	CamSlidersInit(ui);
-	//ScrollPanelInit(ui);
-	FileDiagInit(ui);
+	UiPanelsInit(ui);
+	UiDropdownsInit(ui);
+	UiFileDiagInit(ui);
+	UiSlidersInit(ui);
+	UiObjectListInit(ui);
 }
 
 // Update, manage, and render active elements
@@ -143,7 +152,7 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 	if(IsKeyPressed(KEY_ESCAPE) && ui->flags == 0) 
 		ui->flags ^= UI_QUIT_PROMPT;
 
-	if(ui->flags & UI_QUIT_PROMPT) QuitPrompt(ui);
+	if(ui->flags & UI_QUIT_PROMPT) UiQuitPrompt(ui);
 
 	// Dropdown menus
 	// On pressing a dropdown menu of depth 0 ("file", "edit", "help"),
@@ -194,19 +203,28 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 	}
 
 	// TODO:
-	// scroll panel for camera movement
+	// Scroll sliders for camera movement
+	SliderUpdate(&ui->sliders[0]);	
+	SliderUpdate(&ui->sliders[1]);
+
+	// Draw camera sliders corner rectangle
+	GuiDrawRectangle(ui->cam_slider_corner, 0, BLACK, GRAY);
 
 	// File dialogue (for importing and exporting maps)
 	// lock cursor edit actions while dialogue is active
 	file_diag_state.windowActive = (ui->flags & UI_FILE_DIAG);
 	if(ui->flags & UI_FILE_DIAG) {
-		FileDiag(ui);
+		UiFileDiag(ui);
 		cursor->flags |= CURSOR_ON_UI;
 	}
+
+	// TODO:
+	// Object list
+	UiObjectList(ui);
 }
 
 // Update and render quit prompt screen, user can confirm to exit app or cancel and return 
-void QuitPrompt(Ui *ui) {
+void UiQuitPrompt(Ui *ui) {
 	// Set message box rect, should appear in the center of the screen
 	Rectangle rec = (Rectangle){ ui->ww * 0.5f - 250, ui->wh * 0.5f - 150, 500, 300 };
 
@@ -232,7 +250,7 @@ void QuitPrompt(Ui *ui) {
 }
 
 // Dialogue window for importing and exporting files 
-void FileDiag(Ui *ui) {
+void UiFileDiag(Ui *ui) {
 	// Clear dropdowns
 	ui->active_dropdown = -1;
 
@@ -257,8 +275,30 @@ void FileDiag(Ui *ui) {
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
 }
 
+// Update and draw logic for selection from object list
+void UiObjectList(Ui *ui) {
+	uint16_t entry_count = (sizeof(ui->object_entries) / sizeof(ui->object_entries[0]));
+	
+	for(uint16_t i = 0; i < entry_count; i++) {
+		float rec_pos = (i * (OBJ_ENTRY_H + 20)) + ui->panel_recs[PANEL_TOP].height + 34; 
+		float text_pos = rec_pos + OBJ_ENTRY_H; 	
+
+		Rectangle rec = (Rectangle){ ui->panel_recs[PANEL_LFT].x + 10, rec_pos, OBJ_ENTRY_W, OBJ_ENTRY_H }; 
+		Rectangle text_rec = (Rectangle){ rec.x, text_pos, OBJ_ENTRY_W, 16 };
+		
+		// Draw frame
+		DrawRectangleRec(rec, BLACK);
+		DrawRectangleLinesEx(rec, 2, RAYWHITE);
+
+		// Draw text
+		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
+		GuiDrawText(ui->object_entries[i].label, text_rec, TEXT_ALIGN_CENTER, RAYWHITE);
+		GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
+	}
+}
+
 // Load style set from "options.conf", colorful messages sent to terminal displaying style info
-void StyleInit(Ui *ui, Config *conf) {
+void UiStyleInit(Ui *ui, Config *conf) {
 	printf("\e[0;33mSetting GUI style...\e[0;37m\n");
 
 	char *styles_dir = "resources/styles";
@@ -286,7 +326,7 @@ void StyleInit(Ui *ui, Config *conf) {
 }
 
 // Load a ".rgs" file from order of appearance in styles directory 
-void StyleLoadFromId(Ui *ui, uint8_t id) {
+void UiStyleLoadFromId(Ui *ui, uint8_t id) {
 	char *styles_dir = "resources/styles";
 	FilePathList sub_dirs = LoadDirectoryFiles(styles_dir); 
 
@@ -299,7 +339,7 @@ void StyleLoadFromId(Ui *ui, uint8_t id) {
 }
 
 // Load a ".rgs" file from style name
-void StyleLoadFromName(Ui *ui, char *name) {
+void UiStyleLoadFromName(Ui *ui, char *name) {
 	char *styles_dir = "resources/styles";
 	FilePathList sub_dirs = LoadDirectoryFiles(styles_dir); 
 	
@@ -309,7 +349,7 @@ void StyleLoadFromName(Ui *ui, char *name) {
 }
 
 // Set panel data (rectangles and text)
-void PanelsInit(Ui *ui) {
+void UiPanelsInit(Ui *ui) {
 	// Set box values 
 	Rectangle recs[] = {
 		{0, 0, ui->ww, 100}, 
@@ -322,7 +362,7 @@ void PanelsInit(Ui *ui) {
 	char *text[] = {
 		"Top",
 		"Bottom",
-		"Left",
+		"Objects",
 		"Right"
 	};
 
@@ -332,7 +372,7 @@ void PanelsInit(Ui *ui) {
 }
 
 // Set dropdown menu data (rectangles, text and function pointers)
-void DropdownsInit(Ui *ui) {
+void UiDropdownsInit(Ui *ui) {
 	// Set box values 
 	Rectangle recs[] = {
 		{0, 0, 100,   24},
@@ -372,55 +412,105 @@ void DropdownsInit(Ui *ui) {
 	ui->active_dropdown = -1;
 }
 
-// Set dropdown menu data (rectangles, text)
-void CamSlidersInit(Ui *ui) {
-	Rectangle recs[] = {
-		// Horizontal
-		(Rectangle) {
-			.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
-			.y = ui->panel_recs[PANEL_BOT].y, 
-			.width = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_LFT].width,
-			.height = 32
-		},
-
-		// Vertical
-		(Rectangle) {
-			.x = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_RGT].width,
-			.y = ui->panel_recs[PANEL_TOP].y + 32,
-			.width = 32,
-			.height = ui->panel_recs[PANEL_BOT].y - ui->panel_recs[PANEL_TOP].height
-		}
-	};
-
-	memcpy(ui->cam_slider_recs, recs, sizeof(recs));
-
-	// TODO:
-	// Set text
-}
-
-// Set dropdown menu data (rectangles)
-void ScrollPanelInit(Ui *ui) {
-	Rectangle view_rec = (Rectangle) {
-		.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
-		.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height,
-		.width = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
-		.height = ui->panel_recs[PANEL_BOT].y - ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height
-	};
-
-	Rectangle content_rec = (Rectangle) {
-		.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
-		.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height,
-		.width = ui->panel_recs[PANEL_RGT].x - ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
-		.height = ui->panel_recs[PANEL_BOT].y - ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height
-	};
-
-	ui->cam_slider_recs[0] = view_rec;
-	ui->cam_slider_recs[1] = content_rec;
-}
-
-void FileDiagInit(Ui *ui) {
+void UiFileDiagInit(Ui *ui) {
 	file_diag_state = InitGuiWindowFileDialog(GetWorkingDirectory());
 	file_diag_rect = (Rectangle){ ui->ww * 0.5f - 600, ui->wh * 0.5f - 400, 1200, 800 };
 	file_diag_state.windowBounds = file_diag_rect;
+}
+
+void UiSlidersInit(Ui *ui) {
+	ui->sliders[0] = (Slider) {
+		.flags = 0,
+		.axis = AXIS_HORIZONTAL,
+
+		.val_min = 0, .val_max = 100, .percent = 0,
+
+		.base = (Rectangle) {
+			.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
+			.y = ui->panel_recs[PANEL_BOT].y - 32,
+			.width = ui->ww - (ui->panel_recs[PANEL_LFT].width + ui->panel_recs[PANEL_RGT].width) - 32,
+			.height = 32
+		},
+
+		.handle = (Rectangle) {
+			.x = ui->panel_recs[PANEL_LFT].x + ui->panel_recs[PANEL_LFT].width,
+			.y = ui->panel_recs[PANEL_BOT].y - 32,
+			.width = 100,
+			.height = 32
+		},
+	};
+
+	ui->sliders[1] = (Slider) {
+		.flags = 0,
+		.axis = AXIS_VERTICAL,
+
+		.val_min = 0, .val_max = 100, .percent = 0,
+
+		.base = (Rectangle) {
+			.x = ui->panel_recs[PANEL_RGT].x - 32,
+			.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height,
+			.width = 32,
+			.height = ui->wh - (ui->panel_recs[PANEL_TOP].height + ui->panel_recs[PANEL_BOT].height) - 32
+		},
+
+		.handle = (Rectangle) {
+			.x = ui->panel_recs[PANEL_RGT].x - 32,
+			.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height,
+			.width = 32,
+			.height = 100 
+		},
+	};
+
+	ui->cam_slider_corner = (Rectangle) {
+		.x = ui->panel_recs[PANEL_RGT].x - 32,
+		.y = ui->panel_recs[PANEL_BOT].y - 32,	
+		.width = 32,
+		.height = 32
+	};
+}
+
+// Initalize object list data 
+// NOTE:
+// Will probably be changed read from a file later
+void UiObjectListInit(Ui *ui) {
+	ObjectEntry entries[] = {
+		(ObjectEntry) {
+			.flags = 0,
+			.type = ASTEROID,
+			.frame_id = 0,
+			.spritesheet = NULL,
+			.label = "asteroid"
+		},
+
+		(ObjectEntry) {
+			.flags = 0,
+			.type = PLAYER,
+			.frame_id = 0,
+			.spritesheet = NULL,
+			.label = "player"
+		},
+
+		(ObjectEntry) {
+			.flags = 0,
+			.type = SPAWNER_FISH,
+			.frame_id = 0,
+			.spritesheet = NULL,
+			.label = "fish spawner"
+		},
+
+		(ObjectEntry) {
+			.flags = 0,
+			.type = SPAWNER_ITEM,
+			.frame_id = 0,
+			.spritesheet = NULL,
+			.label = "item spawner"
+		},
+	};
+
+	// Copy list data to ui struct	
+	memcpy(ui->object_entries, entries, sizeof(entries));
+	
+	// Set list scroll value to top
+	ui->object_list_scroll = 0;
 }
 

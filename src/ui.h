@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "config.h"
 #include "cursor.h"
+#include "object.h"
 
 #ifndef UI_H_
 #define UI_H_
@@ -14,18 +15,21 @@
 #define DROP_ROWS 	8
 
 enum PANELS {
-	PANEL_TOP,
-	PANEL_BOT,
-	PANEL_LFT,
-	PANEL_RGT
+	PANEL_TOP,	// 0
+	PANEL_BOT,	// 1
+	PANEL_LFT,	// 2
+	PANEL_RGT 	// 3
 };
 
 #define SLIDER_ACTIVE		0x01
 #define SLIDER_HOVERED		0x02
 #define SLIDER_PRESSED 		0x04
+#define SLIDER_BG_HOVERED	0x08
 
-#define AXIS_HORIZONTAL		0
-#define AXIS_VERTICAL		1
+enum AXES {
+	AXIS_HORIZONTAL,	// 0
+	AXIS_VERTICAL		// 1
+};
 
 typedef struct {
 	uint8_t flags;
@@ -39,15 +43,18 @@ typedef struct {
 	Rectangle handle;
 
 	float *control;
+	float control_bounds[2];
 } Slider;
 
-void SliderUpdate(Slider *slider, float mouse_pos[2]);
+void SliderUpdate(Slider *slider);
 
 typedef struct {
 	uint8_t flags;
 	int8_t active_dropdown;
 
 	unsigned int ww, wh;
+
+	float object_list_scroll;
 
 	Rectangle panel_recs[4];
 	char *panel_text[4];
@@ -58,7 +65,14 @@ typedef struct {
 	Rectangle cam_slider_recs[2];
 	char *cam_slider_text[4];
 
+	Rectangle cam_slider_corner;
+
 	Camera2D *cam;
+
+	Slider sliders[2];
+	ObjectEntry object_entries[4];
+
+	Font font;
 
 	char path_import[512];
 	char path_export[512];
@@ -67,17 +81,18 @@ typedef struct {
 void UiInit(Ui *ui, Config *conf, Camera2D *cam);
 void UiUpdate(Ui *ui, Cursor *cursor, float dt);
 
-void QuitPrompt(Ui *ui);
-void FileDiag(Ui *ui);
+void UiQuitPrompt(Ui *ui);
+void UiFileDiag(Ui *ui);
+void UiObjectList(Ui *ui);
 
-void StyleInit(Ui *ui, Config *conf);
-void StyleLoadFromId(Ui *ui, uint8_t id);
-void StyleLoadFromName(Ui *ui, char *name);
+void UiStyleInit(Ui *ui, Config *conf);
+void UiStyleLoadFromId(Ui *ui, uint8_t id);
+void UiStyleLoadFromName(Ui *ui, char *name);
 
-void PanelsInit(Ui *ui);
-void DropdownsInit(Ui *ui);
-void CamSlidersInit(Ui *ui);
-void ScrollPanelInit(Ui *ui);
-void FileDiagInit(Ui *ui);
+void UiPanelsInit(Ui *ui);
+void UiDropdownsInit(Ui *ui);
+void UiFileDiagInit(Ui *ui);
+void UiSlidersInit(Ui *ui);
+void UiObjectListInit(Ui *ui);
 
 #endif
