@@ -64,6 +64,11 @@ void DrawSpritePro(Spritesheet *spritesheet, uint8_t frame_index, Vector2 positi
 	);
 }
 
+void DrawSpriteRec(Spritesheet *spritesheet, uint8_t frame_index, Rectangle dest, uint8_t flags) {
+	Rectangle source = GetFrameRec(frame_index, spritesheet);
+	DrawTexturePro(spritesheet->texture, source, dest, (Vector2){0, 0}, 0, WHITE);
+}
+
 // Get index of a frame from column and row values
 uint8_t FrameIndex(Spritesheet *spritesheet, uint8_t c, uint8_t r) {
 	return (c + r * spritesheet->cols);
@@ -92,6 +97,7 @@ void SpriteLoaderInit(SpriteLoader *sl) {
 
 // Unload textures, free allocated memory
 void SpriteLoaderClose(SpriteLoader *sl) {
+	
 	free(sl->spritesheets);
 }
 
