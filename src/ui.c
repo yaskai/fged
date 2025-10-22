@@ -116,7 +116,7 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
 
 	// Load and set font
-	ui->font  = LoadFontEx("resources/blex.ttf", 32, 0, 0);
+	ui->font  = LoadFontEx("resources/fonts/source.ttf", 32, 0, 0);
 	SetTextureFilter(ui->font.texture, TEXTURE_FILTER_TRILINEAR);
 	GuiSetFont(ui->font);
 
@@ -278,23 +278,45 @@ void UiFileDiag(Ui *ui) {
 // Update and draw logic for selection from object list
 void UiObjectList(Ui *ui) {
 	uint16_t entry_count = (sizeof(ui->object_entries) / sizeof(ui->object_entries[0]));
+
+	Color clr_background = GetColor(GuiGetStyle(BUTTON, BASE_COLOR_NORMAL));
+	Color clr_default = GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_NORMAL));
+	//Color clr_hovered = GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_FOCUSED));
+	//Color clr_pressed = GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED));
+	Color clr_hovered = GOLD;
+	Color clr_pressed = SKYBLUE;
 	
 	for(uint16_t i = 0; i < entry_count; i++) {
+		// Clear object list entry flags
+		ui->object_entries[i].flags = 0;
+
+		Color color = clr_default;
+
 		float rec_pos = (i * (OBJ_ENTRY_H + 20)) + ui->panel_recs[PANEL_TOP].height + 34; 
 		float text_pos = rec_pos + OBJ_ENTRY_H; 	
 
 		Rectangle rec = (Rectangle){ ui->panel_recs[PANEL_LFT].x + 10, rec_pos, OBJ_ENTRY_W, OBJ_ENTRY_H }; 
 		Rectangle text_rec = (Rectangle){ rec.x, text_pos, OBJ_ENTRY_W, 16 };
 		
-		// Draw frame
-		DrawRectangleRec(rec, BLACK);
-		DrawRectangleLinesEx(rec, 2, RAYWHITE);
+		// Check for hover and press
+		Vector2 mouse_pos = GetMousePosition();
+		if(CheckCollisionPointRec(mouse_pos, rec) || CheckCollisionPointRec(mouse_pos, text_rec)) {
+			color = clr_hovered;
+			ui->object_entries[i].flags |= OBJ_ENTRY_HOVERED;
+				
+			if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+				color = clr_pressed;
+				ui->object_entries[i].flags |= OBJ_ENTRY_PRESSED;
+			}
+		}
+		
+		DrawRectangleRec(rec, clr_background);
+		DrawRectangleLinesEx(rec, 2, color);
 
-		// Draw text
+		// Draw label text
 		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
-		GuiDrawText(ui->object_entries[i].label, text_rec, TEXT_ALIGN_CENTER, RAYWHITE);
-		GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
-	}
+		GuiDrawText(ui->object_entries[i].label, text_rec, TEXT_ALIGN_CENTER, color);
+		GuiSetStyle(DEFAULT, TEXT_SIZE, 24); }
 }
 
 // Load style set from "options.conf", colorful messages sent to terminal displaying style info
@@ -380,7 +402,7 @@ void UiDropdownsInit(Ui *ui) {
 		{200, 0, 100, 24}
 	};
 
-	// Set text values
+	// Set string values
 	char *text[DROP_COLS][DROP_ROWS] = {
 		{ "File", "#008#New", "#001#Open", "#002#Save", "#159#Quit", "", "", "" },
 		{ "Edit", "#056#Undo", "#057#Redo", "", "", "", "", "" 	   },
