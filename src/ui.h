@@ -68,6 +68,7 @@ typedef struct {
 	Rectangle cam_slider_corner;
 
 	Camera2D *cam;
+	SpriteLoader *sl;
 
 	Slider sliders[2];
 	ObjectEntry object_entries[4];
@@ -78,7 +79,7 @@ typedef struct {
 	char path_export[512];
 } Ui;
 
-void UiInit(Ui *ui, Config *conf, Camera2D *cam);
+void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl);
 void UiUpdate(Ui *ui, Cursor *cursor, float dt);
 
 void UiQuitPrompt(Ui *ui);

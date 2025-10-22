@@ -1,8 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "raylib.h"
 #include "sprites.h"
 
+// Make a spritesheet, slice frames
 Spritesheet SpritesheetCreate(char *texture_path, Vector2 frame_dimensions) {
 	Texture2D texture = LoadTexture(texture_path);
 
@@ -25,10 +27,12 @@ Spritesheet SpritesheetCreate(char *texture_path, Vector2 frame_dimensions) {
 	};
 }
 
+// Unload spritesheet texture
 void SpritesheetClose(Spritesheet *spritesheet) {
 	UnloadTexture(spritesheet->texture);
 }
 
+// Draw a spritesheet frame
 void DrawSprite(Spritesheet *spritesheet, uint8_t frame_index, Vector2 position, uint8_t flags) {
 	Rectangle src_rec = GetFrameRec(frame_index, spritesheet);
 	if(flags & SPR_FLIP_X) src_rec.width  *= -1;
@@ -37,6 +41,7 @@ void DrawSprite(Spritesheet *spritesheet, uint8_t frame_index, Vector2 position,
 	DrawTextureRec(spritesheet->texture, src_rec, position, WHITE);	
 }
 
+// Draw a spritesheet frame (with rotation)
 void DrawSpritePro(Spritesheet *spritesheet, uint8_t frame_index, Vector2 position, float rotation, uint8_t flags) {
 	Rectangle src_rec = GetFrameRec(frame_index, spritesheet);
 	if(flags & SPR_FLIP_X) src_rec.width  *= -1;
@@ -59,10 +64,12 @@ void DrawSpritePro(Spritesheet *spritesheet, uint8_t frame_index, Vector2 positi
 	);
 }
 
+// Get index of a frame from column and row values
 uint8_t FrameIndex(Spritesheet *spritesheet, uint8_t c, uint8_t r) {
 	return (c + r * spritesheet->cols);
 }
 
+// Get frame rectangle from index 
 Rectangle GetFrameRec(uint8_t idx, Spritesheet *spritesheet) {
 	uint8_t c = idx % spritesheet->cols, r = idx / spritesheet->cols;
 
@@ -72,5 +79,46 @@ Rectangle GetFrameRec(uint8_t idx, Spritesheet *spritesheet) {
 		.width  = spritesheet->frame_w,
 		.height = spritesheet->frame_h
 	};			
+}
+
+// Initialize sprite loader
+void SpriteLoaderInit(SpriteLoader *sl) {
+	sl->count = 0;
+	sl->capacity = SPR_LOADER_INIT_CAP;
+	sl->spritesheets = (Spritesheet*)malloc(sizeof(Spritesheet) * sl->capacity);
+
+	LoadAllSprites(sl);
+}
+
+// Unload textures, free allocated memory
+void SpriteLoaderClose(SpriteLoader *sl) {
+	free(sl->spritesheets);
+}
+
+// load spritesheet and add to sprite loader sheet array
+void LoadSpriteheet(SpriteLoader *sl, char *path, Vector2 frame_dimensions) {
+	// Initialize new spritesheet
+	Spritesheet spritesheet = SpritesheetCreate(path, frame_dimensions);
+	
+	// Increment count
+	sl->count++;	
+
+	// Resize array if over capacity 
+	if(sl->count > sl->capacity - 1) {
+		sl->capacity *= 2;
+		
+		Spritesheet *ptr_spritesheets;
+		ptr_spritesheets = realloc(sl->spritesheets, sizeof(Spritesheet) * sl->capacity);	
+
+		sl->spritesheets = ptr_spritesheets;	
+	}
+
+	// Add new spritesheet to array
+	sl->spritesheets[sl->count-1] = spritesheet;
+}
+
+void LoadAllSprites(SpriteLoader *sl) {
+	LoadSpriteheet(sl, "resources/sprites/asteroid00.png", (Vector2){128, 128});
+	LoadSpriteheet(sl, "resources/sprites/player_sheet.png", (Vector2){64, 64});
 }
 

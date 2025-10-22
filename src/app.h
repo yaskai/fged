@@ -3,6 +3,7 @@
 #include "cursor.h"
 #include "ui.h"
 #include "map.h"
+#include "sprites.h"
 
 #ifndef APP_H_
 #define APP_H_
@@ -16,6 +17,7 @@ typedef struct {
 
 	Camera2D cam;
 	Cursor cursor;
+	SpriteLoader sprite_loader; 
 	Map map;
 	Ui ui;
 } App;

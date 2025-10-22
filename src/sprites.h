@@ -26,5 +26,19 @@ void DrawSpritePro(Spritesheet *spritesheet, uint8_t frame_index, Vector2 positi
 uint8_t FrameIndex(Spritesheet *spritesheet, uint8_t c, uint8_t r);
 Rectangle GetFrameRec(uint8_t idx, Spritesheet *spritesheet);
 
-#endif 
+#define SPR_LOADER_INIT_CAP	32
 
+typedef struct {
+	uint16_t count;
+	uint16_t capacity;
+
+	Spritesheet *spritesheets;
+} SpriteLoader;
+
+void SpriteLoaderInit(SpriteLoader *sl);
+void SpriteLoaderClose(SpriteLoader *sl);
+
+void LoadSpriteheet(SpriteLoader *sl, char *path, Vector2 frame_dimensions);
+void LoadAllSprites(SpriteLoader *sl);
+
+#endif 

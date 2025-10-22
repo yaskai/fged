@@ -19,13 +19,17 @@ void AppInit(App *app, Config *conf) {
 	app->cursor = (Cursor){0};
 	CursorInit(&app->cursor);
 
+	// Initialize sprite system
+	app->sprite_loader = (SpriteLoader){0};
+	SpriteLoaderInit(&app->sprite_loader);
+
 	// Initialize map
 	app->map = (Map){0};
 	MapInit(&app->map, &app->cam, &app->cursor);
 
 	// Initialize UI
 	app->ui = (Ui){0};
-	UiInit(&app->ui, app->conf, &app->cam);
+	UiInit(&app->ui, app->conf, &app->cam, &app->sprite_loader);
 }
 
 // Update
@@ -57,5 +61,6 @@ void AppDraw(App *app) {
 
 // Unload data
 void AppClose(App *app) {
+	SpriteLoaderClose(&app->sprite_loader);
 }
 

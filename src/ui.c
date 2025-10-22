@@ -110,7 +110,7 @@ void SliderUpdate(Slider *slider) {
 }
 
 // Initialize all elements, set style values, etc.
-void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
+void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl) {
 	// Load and initialize style StyleInit(ui, conf);
 	UiStyleInit(ui, conf);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
@@ -126,6 +126,7 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam) {
 	
 	// Set pointers
 	ui->cam = cam;
+	ui->sl = sl;
 	
 	// Initialize elements
 	UiPanelsInit(ui);
@@ -310,13 +311,19 @@ void UiObjectList(Ui *ui) {
 			}
 		}
 		
+		// Draw frame
 		DrawRectangleRec(rec, clr_background);
 		DrawRectangleLinesEx(rec, 2, color);
+
+		// Draw sprite preview frame
+		if(ui->object_entries[i].spritesheet != NULL)
+			DrawSpritePro(&ui->sl->spritesheets[i], 0, (Vector2){rec.x, rec.y}, 0, 0);
 
 		// Draw label text
 		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
 		GuiDrawText(ui->object_entries[i].label, text_rec, TEXT_ALIGN_CENTER, color);
-		GuiSetStyle(DEFAULT, TEXT_SIZE, 24); }
+		GuiSetStyle(DEFAULT, TEXT_SIZE, 24); 
+	}
 }
 
 // Load style set from "options.conf", colorful messages sent to terminal displaying style info
@@ -500,7 +507,7 @@ void UiObjectListInit(Ui *ui) {
 			.flags = 0,
 			.type = ASTEROID,
 			.frame_id = 0,
-			.spritesheet = NULL,
+			.spritesheet = &ui->sl->spritesheets[0],
 			.label = "asteroid"
 		},
 
@@ -508,7 +515,7 @@ void UiObjectListInit(Ui *ui) {
 			.flags = 0,
 			.type = PLAYER,
 			.frame_id = 0,
-			.spritesheet = NULL,
+			.spritesheet = &ui->sl->spritesheets[1],
 			.label = "player"
 		},
 
