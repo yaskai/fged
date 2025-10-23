@@ -18,14 +18,23 @@ enum OBJECT_TYPES {
 #define OBJ_ENTRY_W			80
 #define OBJ_ENTRY_H			80
 
+#define PROP_UNIQUE			0x01
+#define PROP_IS_SPAWNER		0x02
+
 typedef struct {
-	uint8_t flags;
-	uint8_t type;
+	uint8_t flags, type;
 
 	uint8_t frame_id;
 	Spritesheet *spritesheet;
 
 	char *label;
 } ObjectEntry;
+
+typedef struct {
+	uint8_t flags, properties, type;
+
+	uint8_t frame_id;	
+	Spritesheet *spritesheet;
+} Entity; 
 
 #endif

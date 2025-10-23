@@ -6,20 +6,26 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-#define MAP_SAVED		0x01
-#define MAP_SHOW_GRID	0x02
+#define MAP_SHOW_GRID	0x01
 
 typedef struct {
-	uint16_t object_count_prev;
-	uint16_t object_count_curr;
+	uint16_t id;
 
-	// Object *objects_prev
-	// Object *objects_curr
+	uint16_t ent_count_prev;
+	uint16_t ent_count_curr;
+
+	Entity *ents_prev;
+	Entity *ents_curr;
 } BufferAction;
 
+#define BUF_SAVED		0x01 
+
 typedef struct {
-	uint16_t object_count, object_cap;
+	uint16_t ent_count, ent_cap;
 	uint16_t action_count, action_cap;
+
+	uint16_t curr_action;
+	BufferAction *actions;
 
 	char name[32];
 } MapBuffer;
@@ -46,5 +52,9 @@ void MapAddBuffer(Map *map);
 void MapRemoveBuffer(Map *map);
 
 void MapDrawGrid(Map *map);
+
+void BufActionApply(BufferAction *action, MapBuffer *buffer);
+void BufActionUndo(BufferAction *action, MapBuffer *buffer); 
+void BufActionRedo(BufferAction *action, MapBuffer *buffer);
 
 #endif

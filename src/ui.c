@@ -318,7 +318,6 @@ void UiObjectList(Ui *ui) {
 		// Draw sprite preview frame
 		if(ui->object_entries[i].spritesheet != NULL)
 			DrawSpriteRec(ui->object_entries[i].spritesheet, 0, rec, 0);
-			//DrawSpritePro(&ui->sl->spritesheets[i], 0, (Vector2){rec.x, rec.y}, 0, 0);
 
 		// Draw label text
 		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);

@@ -29,6 +29,13 @@ Rectangle GetFrameRec(uint8_t idx, Spritesheet *spritesheet);
 
 #define SPR_LOADER_INIT_CAP	32
 
+enum SPRITESHEET_NAMES {
+	SPR_ASTEROID,
+	SPR_PLAYER,
+	SPR_FISH,
+	SPR_ITEM,
+};
+
 typedef struct {
 	uint16_t count;
 	uint16_t capacity;
