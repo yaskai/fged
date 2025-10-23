@@ -65,7 +65,7 @@ void BufActionApply(BufferAction *action, MapBuffer *buffer) {
 	// eg. 
 	// User places entities resulting in 10 buffer actions.    
 	// Undo performed 3 times making current action 7 (6 really since count begins at 0).
-	// User then places another object breaking the timeline.  
+	// User then places another entity breaking the timeline.  
 	// Action count and current place updated to maintain proper history order. 
 	if(buffer->curr_action < buffer->action_count) {
 		for(uint16_t i = buffer->curr_action; i < buffer->action_count; i++) {
