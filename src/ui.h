@@ -3,6 +3,7 @@
 #include "config.h"
 #include "cursor.h"
 #include "object.h"
+#include "map.h"
 
 #ifndef UI_H_
 #define UI_H_
@@ -69,6 +70,7 @@ typedef struct {
 
 	Camera2D *cam;
 	SpriteLoader *sl;
+	Map *map;
 
 	Slider sliders[2];
 	ObjectEntry object_entries[4];
@@ -79,7 +81,7 @@ typedef struct {
 	char path_export[512];
 } Ui;
 
-void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl);
+void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl, Map *map);
 void UiUpdate(Ui *ui, Cursor *cursor, float dt);
 
 void UiQuitPrompt(Ui *ui);

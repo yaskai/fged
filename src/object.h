@@ -30,10 +30,18 @@ typedef struct {
 	char *label;
 } ObjectEntry;
 
-typedef struct {
-	uint8_t flags, properties, type;
+#define ENT_ACTIVE 		0x01
 
+typedef struct {
+	uint8_t flags;
+	uint8_t type;
+	uint8_t properties; 
 	uint8_t frame_id;	
+
+	float rotation;
+
+	Vector2 position;
+
 	Spritesheet *spritesheet;
 } Entity; 
 

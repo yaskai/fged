@@ -21,6 +21,8 @@ typedef struct {
 
 	Rectangle selection_rec_edit;
 	Rectangle selection_rec_final;
+
+	
 } Cursor;
 
 void CursorInit(Cursor *cursor);

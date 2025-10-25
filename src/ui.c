@@ -6,6 +6,7 @@
 #include "ui.h"
 #include "config.h"
 #include "cursor.h"
+#include "map.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "include/raygui.h"
@@ -21,7 +22,7 @@ Rectangle file_diag_rect;
 // Dropdown button events: 
 // to be stored in the "dropdown_fn" array
 // functions are called on button press respective to index
-void fn_new(Ui *ui)  {}
+void fn_new(Ui *ui)  { MapAddBuffer(ui->map); }
 void fn_save(Ui *ui) {}
 void fn_open(Ui *ui) { ui->flags |= UI_FILE_DIAG;   }
 void fn_quit(Ui *ui) { ui->flags ^= UI_QUIT_PROMPT; }
@@ -110,7 +111,7 @@ void SliderUpdate(Slider *slider) {
 }
 
 // Initialize all elements, set style values, etc.
-void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl) {
+void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl, Map *map) {
 	// Load and initialize style StyleInit(ui, conf);
 	UiStyleInit(ui, conf);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 24);
@@ -127,6 +128,7 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl) {
 	// Set pointers
 	ui->cam = cam;
 	ui->sl = sl;
+	ui->map = map;
 	
 	// Initialize elements
 	UiPanelsInit(ui);
