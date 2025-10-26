@@ -10,23 +10,23 @@
 #define MAP_SHOW_GRID	0x01
 
 typedef struct {
-	uint16_t id;
-
-	uint16_t ent_count_prev;
-	uint16_t ent_count_curr;
+	uint16_t ent_count;
+	uint16_t *ent_ids;
 
 	Entity *ents_prev;
 	Entity *ents_curr;
 } BufferAction;
 
-#define BUF_SAVED		0x01 
+#define BUF_SAVED	0x01 
 
-#define BUF_ENT_CAP_INIT	32	
-#define BUF_ACTION_CAP_INIT	32
+#define BUF_ENT_CAP_INIT		32	
+#define BUF_ACTION_CAP_INIT		32
 
 typedef struct {
 	uint16_t ent_count, ent_cap;
 	uint16_t action_count, action_cap;
+
+	int16_t ent_hovered;
 
 	uint16_t curr_action;
 	BufferAction *actions;
@@ -62,7 +62,10 @@ void MapDrawGrid(Map *map);
 
 BufferAction ActionMake();
 void ActionApply(BufferAction *action, MapBuffer *buffer);
-void ActionUndo(BufferAction *action, MapBuffer *buffer); 
-void ActionRedo(BufferAction *action, MapBuffer *buffer);
+void ActionUndo(MapBuffer *buffer); 
+void ActionRedo(MapBuffer *buffer);
+
+void BufAddEntity(MapBuffer *buffer, Entity *entity);
+void BufRemoveEntity(MapBuffer *buffer, Entity *entity);
 
 #endif

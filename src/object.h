@@ -38,6 +38,8 @@ typedef struct {
 	uint8_t properties; 
 	uint8_t frame_id;	
 
+	uint16_t id;
+
 	float rotation;
 
 	Vector2 position;

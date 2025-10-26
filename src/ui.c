@@ -157,6 +157,9 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	if(ui->flags & UI_QUIT_PROMPT) UiQuitPrompt(ui);
 
+	// TODO:
+	// File buffer tabs
+
 	// Dropdown menus
 	// On pressing a dropdown menu of depth 0 ("file", "edit", "help"),
 	// set active dropdown to column of pressed dropdown button

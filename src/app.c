@@ -48,6 +48,7 @@ void AppDraw(App *app) {
 	// Draw with camera tranformations
 	BeginMode2D(app->cam);
 
+	// If a map buffer is open, draw it
 	if(app->map.active_buffer > -1) 
 		MapDraw(&app->map);
 

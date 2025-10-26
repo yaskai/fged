@@ -17,9 +17,48 @@ void MapInit(Map *map, Camera2D *cam, Cursor *cursor, SpriteLoader *sl) {
 }
 
 void MapUpdate(Map *map) {
+	MapBuffer *buffer = &map->buffers[map->active_buffer];
+		
+	buffer->ent_hovered = -1;
+	for(uint16_t i = 0; i < buffer->ent_count; i++) {
+		Entity *ent = &buffer->entities[i];
+		if(!(ent->flags & ENT_ACTIVE)) continue;
+
+		Rectangle rec = (Rectangle) {
+			.x = ent->position.x,
+			.y = ent->position.y,
+			.width = ent->spritesheet->frame_w,
+			.height = ent->spritesheet->frame_h
+		};
+
+		if(CheckCollisionPointRec(map->cursor->world_pos, rec)) 
+			buffer->ent_hovered = i;
+	}
+
+	if(buffer->ent_hovered > -1 && IsKeyPressed(KEY_X)) {
+		Entity *ents_prev = malloc(sizeof(Entity));
+		ents_prev[0] = buffer->entities[buffer->ent_hovered];
+		
+		Entity *ents_curr = malloc(sizeof(Entity));
+		ents_curr[0] = buffer->entities[buffer->ent_hovered];
+		ents_curr[0].flags &= ~ENT_ACTIVE;
+		
+		BufferAction remove_hovered = (BufferAction) {
+			.ent_count = 1,
+			.ents_prev = ents_prev,
+			.ents_curr = ents_curr
+		};
+		
+		ActionApply(&remove_hovered, buffer);
+	}
+
 	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) {
-		Entity *ents = (Entity*)malloc(sizeof(Entity));
-		ents[0] = (Entity) {
+		Entity *ents_prev = (Entity*)malloc(sizeof(Entity));		
+		Entity *ents_curr = (Entity*)malloc(sizeof(Entity));
+
+		ents_prev[0] = (Entity){0};
+		
+		ents_curr[0] = (Entity) {
 			.flags = (ENT_ACTIVE),
 			.type = ASTEROID,
 			.properties = 0,
@@ -29,18 +68,21 @@ void MapUpdate(Map *map) {
 			.spritesheet = &map->sl->spritesheets[SPR_ASTEROID],
 		};
 
-		ents[0].position.x -= ents[0].spritesheet->frame_w * 0.5f;
-		ents[0].position.y -= ents[0].spritesheet->frame_h * 0.5f;
+		ents_curr[0].position.x -= ents_curr[0].spritesheet->frame_w * 0.5f;
+		ents_curr[0].position.y -= ents_curr[0].spritesheet->frame_h * 0.5f;
 
 		BufferAction test_action = (BufferAction) {
-			.ent_count_prev = 0,
-			.ent_count_curr = 1,
-			.ents_prev = NULL,
-			.ents_curr = ents
+			.ent_count = 1,
+			.ents_prev = ents_prev,
+			.ents_curr = ents_curr
 		};
 
 		ActionApply(&test_action, &map->buffers[map->active_buffer]);
+		//printf("ent count: %d\n", map->buffers[map->active_buffer].ent_count);
 	}
+
+	if(IsKeyPressed(KEY_Z)) ActionUndo(buffer);
+	if(IsKeyPressed(KEY_R)) ActionRedo(buffer);
 }
 
 void MapDraw(Map *map) {
@@ -110,7 +152,8 @@ BufferAction ActionMake() {
 // Apply an action to a buffer
 void ActionApply(BufferAction *action, MapBuffer *buffer) {
 	// Increment action count and current action index
-	action->id = buffer->curr_action++;
+	//action->id = buffer->curr_action++;
+	buffer->curr_action++;
 	buffer->action_count++;
 
 	// Resize array if needed
@@ -136,26 +179,62 @@ void ActionApply(BufferAction *action, MapBuffer *buffer) {
 		buffer->action_count = buffer->curr_action;
 	}
 
-	// Update buffer's entity count
-	buffer->ent_count += action->ent_count_curr;
+	// Update buffer's entity count and indices
+	for(uint16_t i = 0; i < action->ent_count; i++) {
+		uint16_t id = buffer->ent_count++;
+
+		action->ents_prev[i].id = id; 
+		action->ents_curr[i].id = id;
+	}
 	
+	// Resize buffer's entity array if needed
+	if(buffer->ent_count > buffer->ent_cap - 1) {
+		buffer->ent_cap *= 2;
+		
+		Entity *ents_ptr = realloc(buffer->entities, sizeof(Entity) * buffer->ent_cap);
+		buffer->entities = ents_ptr;
+	}	
+
 	// Copy action's entity data to buffer
-	for(uint16_t i = 0; i < action->ent_count_curr; i++) {
-		uint16_t id = i + (buffer->ent_count - action->ent_count_curr);	
+	for(uint16_t i = 0; i < action->ent_count; i++) {
+		uint16_t id = i + (buffer->ent_count - action->ent_count);	
 		buffer->entities[id] = action->ents_curr[i];
 	}
 
 	// Add action onto buffer's action history 
 	buffer->actions[buffer->curr_action] = *action;	
-
-	printf("Applied action\n");
 }
 
 // Undo an action in buffer
-void ActionUndo(BufferAction *action, MapBuffer *buffer) {
+void ActionUndo(MapBuffer *buffer) {
+	// Prevent undoing below first index
+	if(buffer->curr_action < 1) return;
+
+	BufferAction *action = &buffer->actions[buffer->curr_action];	
+
+	// Set entities in buffer action to their previous states
+	for(uint16_t i = 0; i < action->ent_count; i++) {
+		uint16_t id = action->ents_prev[i].id;
+		buffer->entities[id] = action->ents_prev[i];
+	}
+
+	// Decrement index in history  
+	buffer->curr_action--;
 }
 
 // Redo an action in buffer
-void ActionRedo(BufferAction *action, MapBuffer *buffer) {
+void ActionRedo(MapBuffer *buffer) {
+	// Prevent redoing passed last index
+	if(buffer->curr_action > buffer->action_count - 1) return;
+	
+	// Increment index in history  
+	buffer->curr_action++;
+
+	BufferAction *action = &buffer->actions[buffer->curr_action];
+	
+	for(uint16_t i = 0; i < action->ent_count; i++) {
+		uint16_t id = action->ents_curr[i].id;
+		buffer->entities[id] = action->ents_curr[i];		
+	}
 }
 
