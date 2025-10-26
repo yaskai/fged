@@ -9,7 +9,15 @@
 
 #define MAP_SHOW_GRID	0x01
 
+enum ACTION_TYPE : uint8_t {
+	ACTION_INSERT,
+	ACTION_REMOVE,
+	ACTION_MODIFY	
+};
+
 typedef struct {
+	uint8_t type;
+	
 	uint16_t ent_count;
 	uint16_t *ent_ids;
 
@@ -65,7 +73,7 @@ void ActionApply(BufferAction *action, MapBuffer *buffer);
 void ActionUndo(MapBuffer *buffer); 
 void ActionRedo(MapBuffer *buffer);
 
-void BufAddEntity(MapBuffer *buffer, Entity *entity);
+void BufAddEntity(uint8_t type, uint8_t properties, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer);
 void BufRemoveEntity(MapBuffer *buffer, Entity *entity);
 
 #endif
