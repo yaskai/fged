@@ -106,8 +106,8 @@ void LoadSpriteheet(SpriteLoader *sl, char *path, Vector2 frame_dimensions) {
 	// Initialize new spritesheet
 	Spritesheet spritesheet = SpritesheetCreate(path, frame_dimensions);
 	
-	// Increment count
-	sl->count++;	
+	// Increment count, set id
+	spritesheet.id = sl->count++;	
 
 	// Resize array if over capacity 
 	if(sl->count > sl->capacity - 1) {

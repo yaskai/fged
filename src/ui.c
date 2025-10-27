@@ -23,7 +23,7 @@ Rectangle file_diag_rect;
 // to be stored in the "dropdown_fn" array
 // functions are called on button press respective to index
 void fn_new(Ui *ui)  { MapAddBuffer(ui->map); }
-void fn_save(Ui *ui) { }
+void fn_save(Ui *ui) { MapWriteBuffer(ui->map, "test.txt"); }
 void fn_open(Ui *ui) { ui->flags |= UI_FILE_DIAG;   }
 void fn_quit(Ui *ui) { ui->flags ^= UI_QUIT_PROMPT; }
 

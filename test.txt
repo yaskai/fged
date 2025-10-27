@@ -1,0 +1,48 @@
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 621.799988, 420.399963
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 807.399963, 503.599976
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 985.800049, 633.199951
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 661.799988, 748.399963
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 448.199951, 583.599976
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 782.599976, 359.599976
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 782.599976, 359.599976
+
+
+flags: 1
+type: 0
+properties: 0rotation: 0.000000
+position: 1048.199951, 402.799957
+

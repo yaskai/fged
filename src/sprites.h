@@ -9,6 +9,7 @@
 
 typedef struct {
 	uint8_t flags;
+	uint8_t id;
 	uint8_t frame_count;		// Number of frames
 	uint8_t cols, rows;			// Number of columns and rows
 

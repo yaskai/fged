@@ -96,6 +96,40 @@ void MapAddBuffer(Map *map) {
 void MapRemoveBuffer(Map *map) {
 }
 
+// Save map to file
+void MapWriteBuffer(Map *map, char *path) {
+	FILE *pF = fopen(path, "w"); 
+	if(!pF) {
+		printf("ERROR: could not write to file path.\n");
+		return;
+	}
+
+	if(map->active_buffer < 0) return;
+	MapBuffer *buffer = &map->buffers[map->active_buffer];
+
+	for(uint16_t i = 0; i < buffer->ent_count; i++) {
+		Entity *ent = &buffer->entities[i];
+
+		if(!(ent->flags & ENT_ACTIVE)) continue;
+		
+		fprintf(pF, "\n");
+		fprintf(pF, "flags: %d\n", ent->flags);
+		fprintf(pF, "type: %d\n", ent->type);
+		fprintf(pF, "properties: %d\n", ent->properties);
+		fprintf(pF, "rotation: %f\n", ent->rotation);
+		fprintf(pF, "position: %f, %f\n", ent->position.x, ent->position.y);
+		fprintf(pF, "frame: %d\n", ent->frame_id);
+		fprintf(pF, "spritesheet %d\n", ent->spritesheet->id);
+		fprintf(pF, "\n");
+	}
+
+	fclose(pF);
+}
+
+// Read map from file
+void MapReadBuffer(Map *map, char *path) {
+}
+
 void MapDrawGrid(Map *map) {
 	for(uint16_t i = 0; i < (16 * 16); i++) {
 		uint16_t c = i % 16;
