@@ -72,6 +72,9 @@ typedef struct {
 	SpriteLoader *sl;
 	Map *map;
 
+	Rectangle tab_home_rec;
+	Rectangle tab_new_rec;
+
 	Slider sliders[2];
 	ObjectEntry object_entries[4];
 
@@ -87,6 +90,7 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt);
 void UiQuitPrompt(Ui *ui);
 void UiFileDiag(Ui *ui);
 void UiObjectList(Ui *ui);
+void UiTabs(Ui *ui);
 
 void UiStyleInit(Ui *ui, Config *conf);
 void UiStyleLoadFromId(Ui *ui, uint8_t id);
@@ -97,5 +101,6 @@ void UiDropdownsInit(Ui *ui);
 void UiFileDiagInit(Ui *ui);
 void UiSlidersInit(Ui *ui);
 void UiObjectListInit(Ui *ui);
+void UiTabsInit(Ui *ui);
 
 #endif

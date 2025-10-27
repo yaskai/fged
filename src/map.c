@@ -93,7 +93,20 @@ void MapAddBuffer(Map *map) {
 	map->active_buffer = map->buffer_count - 1;
 }
 
-void MapRemoveBuffer(Map *map) {
+void MapRemoveBuffer(Map *map, short id) {
+	if(id >= map->buffer_count) return;
+
+	MapBuffer *buffer = &map->buffers[id];
+
+	free(buffer->actions);
+	free(buffer->entities);
+
+	for(short i = id; i < map->buffer_count - 1; i++) {
+		map->buffers[i] = map->buffers[i + 1];
+	}
+
+	map->buffer_count--;
+	map->active_buffer = id - 1;
 }
 
 // Save map to file

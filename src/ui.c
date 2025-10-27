@@ -136,6 +136,7 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl, Map *map) {
 	UiFileDiagInit(ui);
 	UiSlidersInit(ui);
 	UiObjectListInit(ui);
+	UiTabsInit(ui);
 }
 
 // Update, manage, and render active elements
@@ -159,6 +160,7 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	// TODO:
 	// File buffer tabs
+	UiTabs(ui);
 
 	// Dropdown menus
 	// On pressing a dropdown menu of depth 0 ("file", "edit", "help"),
@@ -224,7 +226,6 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 		cursor->flags |= CURSOR_ON_UI;
 	}
 
-	// TODO:
 	// Object list
 	UiObjectList(ui);
 }
@@ -328,6 +329,55 @@ void UiObjectList(Ui *ui) {
 		GuiSetStyle(DEFAULT, TEXT_SIZE, 16);
 		GuiDrawText(ui->object_entries[i].label, text_rec, TEXT_ALIGN_CENTER, color);
 		GuiSetStyle(DEFAULT, TEXT_SIZE, 24); 
+	}
+}
+
+// File tabs
+void UiTabs(Ui *ui) {
+	if(GuiButton(ui->tab_home_rec, TextFormat("#%d#", ICON_FILETYPE_HOME))) {
+		ui->map->active_buffer = -1;
+	}
+
+	GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+
+	for(uint8_t i = 0; i < ui->map->buffer_count; i++) {
+		Rectangle rec = (Rectangle) {
+			.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (i * 100),
+			.y = ui->tab_home_rec.y,
+			.width = 100,
+			.height = ui->tab_home_rec.height
+		};
+
+		Rectangle close_rec = (Rectangle) {
+			.x = rec.x + rec.width - 32, 
+			.y = rec.y,
+			.width = 32,
+			.height = 32
+		};
+
+		if(GuiButton(rec, TextFormat("%d. ", i + 1))) {
+			ui->map->active_buffer = i;
+
+			if(CheckCollisionPointRec(GetMousePosition(), close_rec)) {
+				MapRemoveBuffer(ui->map, i);
+				break;
+			}
+		}
+
+		GuiDrawIcon(ICON_CROSS, close_rec.x + close_rec.width * 0.25f, close_rec.y + close_rec.height * 0.25f, 1, RED);
+	}
+
+	GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+
+	Rectangle new_rec = (Rectangle) {
+		.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (100 * ui->map->buffer_count), 
+		.y = ui->tab_home_rec.y,
+		.width = 32,
+		.height = 32
+	};
+
+	if(GuiButton(new_rec, TextFormat("#%d#", ICON_FILE_ADD))) {
+		fn_new(ui);
 	}
 }
 
@@ -546,5 +596,21 @@ void UiObjectListInit(Ui *ui) {
 	
 	// Set list scroll value to top
 	ui->object_list_scroll = 0;
+}
+
+void UiTabsInit(Ui *ui) {
+	ui->tab_home_rec = (Rectangle) {
+		.x = ui->panel_recs[PANEL_LFT].x,
+		.y = ui->panel_recs[PANEL_TOP].y + ui->panel_recs[PANEL_TOP].height * 0.25f,
+		.width = 32,
+		.height = 32
+	};
+
+	ui->tab_new_rec = (Rectangle) {
+		.x = ui->tab_home_rec.x + ui->tab_home_rec.width,
+		.y = ui->tab_home_rec.y,
+		.width = 32,
+		.height = 32
+	};	
 }
 

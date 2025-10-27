@@ -97,7 +97,6 @@ void SpriteLoaderInit(SpriteLoader *sl) {
 
 // Unload textures, free allocated memory
 void SpriteLoaderClose(SpriteLoader *sl) {
-	
 	free(sl->spritesheets);
 }
 

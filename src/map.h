@@ -62,7 +62,7 @@ void MapDraw(Map *map);
 void MapClose(Map *map);
 
 void MapAddBuffer(Map *map);
-void MapRemoveBuffer(Map *map);
+void MapRemoveBuffer(Map *map, short id);
 
 void MapWriteBuffer(Map *map, char *path);
 void MapReadBuffer(Map *map, char *path);
