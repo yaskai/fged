@@ -35,27 +35,11 @@ void MapUpdate(Map *map) {
 			buffer->ent_hovered = i;
 	}
 
-	if(buffer->ent_hovered > -1 && IsKeyPressed(KEY_X)) {
-		/*
-		Entity *ents_prev = malloc(sizeof(Entity));
-		ents_prev[0] = buffer->entities[buffer->ent_hovered];
-		
-		Entity *ents_curr = malloc(sizeof(Entity));
-		ents_curr[0] = buffer->entities[buffer->ent_hovered];
-		ents_curr[0].flags &= ~ENT_ACTIVE;
-		
-		BufferAction remove_hovered = (BufferAction) {
-			.ent_count = 1,
-			.ents_prev = ents_prev,
-			.ents_curr = ents_curr
-		};
-		
-		ActionApply(&remove_hovered, buffer);
-		*/
-
+	// Delete hovered entity
+	if(buffer->ent_hovered > -1 && (IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_BACKSPACE)))
 		BufRemoveEntity(buffer, &buffer->entities[buffer->ent_hovered]);
-	}
 
+	// Add a new entity 
 	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) 
 		BufAddEntity(ASTEROID, 0, 0, map->cursor->world_pos, &map->sl->spritesheets[SPR_ASTEROID], buffer);
 
@@ -224,10 +208,7 @@ void BufAddEntity(uint8_t type, uint8_t properties, float rotation, Vector2 posi
 	};
 
 	Entity *ents_prev = malloc(sizeof(Entity)), *ents_curr = malloc(sizeof(Entity));
-	uint16_t *ent_ids = malloc(sizeof(uint16_t));
-
-	ents_prev[0] = (Entity){0};
-	ents_curr[0] = ent;
+	ents_prev[0] = (Entity){0}, ents_curr[0] = ent;
 
 	BufferAction action = (BufferAction) { .type = ACTION_INSERT, .ent_count = 1, .ents_prev = ents_prev, .ents_curr = ents_curr };
 	ActionApply(&action, buffer);

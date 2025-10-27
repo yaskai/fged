@@ -17,9 +17,7 @@ enum ACTION_TYPE : uint8_t {
 
 typedef struct {
 	uint8_t type;
-	
 	uint16_t ent_count;
-	uint16_t *ent_ids;
 
 	Entity *ents_prev;
 	Entity *ents_curr;
@@ -66,9 +64,11 @@ void MapClose(Map *map);
 void MapAddBuffer(Map *map);
 void MapRemoveBuffer(Map *map);
 
+void MapWriteBuffer(Map *map);
+void MapReadBuffer(Map *map, char *path);
+
 void MapDrawGrid(Map *map);
 
-BufferAction ActionMake();
 void ActionApply(BufferAction *action, MapBuffer *buffer);
 void ActionUndo(MapBuffer *buffer); 
 void ActionRedo(MapBuffer *buffer);
