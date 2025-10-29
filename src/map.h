@@ -33,11 +33,17 @@ typedef struct {
 	uint16_t action_count, action_cap;
 
 	int16_t ent_hovered;
+	int16_t ent_selected;
 
 	uint16_t curr_action;
 	BufferAction *actions;
 
+	Entity ent_prototype;
 	Entity *entities;
+
+	uint16_t cb_count;
+	Rectangle cb_rec;
+	Entity *clipboard;
 
 	char name[32];
 } MapBuffer;
@@ -75,5 +81,11 @@ void ActionRedo(MapBuffer *buffer);
 
 void BufAddEntity(uint8_t type, uint8_t properties, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer);
 void BufRemoveEntity(MapBuffer *buffer, Entity *entity);
+
+void BufTranslateEntity(MapBuffer *buffer, Entity *entity, Vector2 pos);
+void BufScaleEntity(MapBuffer *buffer, Entity *entity, float scale);
+
+void Copy(MapBuffer *buffer, Rectangle rec);
+void Paste(MapBuffer *buffer, Vector2 pos);
 
 #endif

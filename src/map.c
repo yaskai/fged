@@ -2,9 +2,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "raylib.h"
+#include "raymath.h"
 #include "map.h"
 #include "sprites.h"
+
+float temp_scale = 1.0f;
 
 void MapInit(Map *map, Camera2D *cam, Cursor *cursor, SpriteLoader *sl) {
 	map->cam = cam;
@@ -35,16 +39,61 @@ void MapUpdate(Map *map) {
 			buffer->ent_hovered = i;
 	}
 
-	// Delete hovered entity
-	if(buffer->ent_hovered > -1 && (IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_BACKSPACE)))
-		BufRemoveEntity(buffer, &buffer->entities[buffer->ent_hovered]);
-
 	// Add a new entity 
-	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) 
-		BufAddEntity(ASTEROID, 0, 0, map->cursor->world_pos, &map->sl->spritesheets[SPR_ASTEROID], buffer);
+	if(IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A) && !(map->cursor->flags & CURSOR_ON_UI)) 
+		BufAddEntity(buffer->ent_prototype.type, 0, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
+
+	if(buffer->ent_selected > -1 && buffer->entities[buffer->ent_selected].flags & ENT_ACTIVE) {
+		Entity *ent = &buffer->entities[buffer->ent_selected];
+		
+		if(IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_BACKSPACE))
+			BufRemoveEntity(buffer, &buffer->entities[buffer->ent_selected]);
+
+		if(IsKeyPressed(KEY_M))
+			ent->flags ^= ENT_MOVING;
+
+		if(IsKeyPressed(KEY_S)) {
+			ent->flags ^= ENT_SCALING;
+			map->cursor->flags ^= CURSOR_LOCK_ZOOM;
+
+			if(!(ent->flags & ENT_SCALING)) 
+				BufScaleEntity(buffer, ent, temp_scale);
+		}
+
+		if(ent->flags & ENT_SCALING) {
+			float scroll = GetMouseWheelMove();
+			if(fabsf(scroll) > 0) {
+				temp_scale += scroll;
+			}
+
+			temp_scale = Clamp(temp_scale, 0.1f, 10.0f);
+		}
+
+		if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ent->flags & ENT_MOVING) 
+			BufTranslateEntity(buffer, ent, map->cursor->world_pos);
+	}
 
 	if(IsKeyPressed(KEY_Z)) ActionUndo(buffer);
 	if(IsKeyPressed(KEY_R)) ActionRedo(buffer);
+
+	if(map->cursor->flags & CURSOR_BOX_OPEN) {
+		if(IsKeyPressed(KEY_C)) {
+			Copy(buffer, map->cursor->selection_rec_final);
+		}
+	}
+
+	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) {
+		Paste(buffer, map->cursor->world_pos);
+	}
+
+	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+		if(buffer->ent_selected > -1)
+			buffer->entities[buffer->ent_selected].flags &= ~ENT_SCALING;
+
+		buffer->ent_selected = buffer->ent_hovered;
+		
+		temp_scale = buffer->entities[buffer->ent_selected].scale;
+	}
 }
 
 void MapDraw(Map *map) {
@@ -58,7 +107,34 @@ void MapDraw(Map *map) {
 	for(uint16_t i = 0; i < buffer->ent_count; i++) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;	
-		DrawSpritePro(ent->spritesheet, ent->frame_id, ent->position, ent->rotation, 0);
+		if(ent->flags & ENT_MOVING) continue;
+		if(ent->flags & ENT_SCALING) continue;
+
+		DrawSpritePro(ent->spritesheet, ent->frame_id, ent->position, ent->rotation, ent->scale, WHITE, 0);
+	}
+
+	if(buffer->ent_selected > -1) {
+		Entity *ent = &buffer->entities[buffer->ent_selected];
+		if(!(ent->flags & ENT_ACTIVE)) return;
+
+		Rectangle rec = (Rectangle) {
+			.x = ent->position.x,
+			.y = ent->position.y,
+			.width = ent->spritesheet->frame_w,
+			.height = ent->spritesheet->frame_h
+		};
+		
+		Color color = ColorAlpha(ORANGE, 0.8f);
+		if(ent->flags & ENT_MOVING) {
+			rec.x = map->cursor->world_pos.x - ent->spritesheet->frame_w * 0.5f;
+			rec.y = map->cursor->world_pos.y - ent->spritesheet->frame_h * 0.5f;
+			color = WHITE;
+		}
+
+		float scale = ent->scale;
+		if(ent->flags & ENT_SCALING) scale = temp_scale;
+
+		DrawSpritePro(ent->spritesheet, ent->frame_id, (Vector2){rec.x, rec.y}, ent->rotation, scale, color, 0);
 	}
 }
 
@@ -81,6 +157,8 @@ void MapAddBuffer(Map *map) {
 	BufferAction *actions = (BufferAction*)malloc(sizeof(BufferAction) * BUF_ACTION_CAP_INIT);
 	Entity *entities = (Entity*)malloc(sizeof(Entity) * BUF_ENT_CAP_INIT);
 
+	Entity *cb = (Entity*)malloc(sizeof(Entity) * BUF_ENT_CAP_INIT);	
+
 	MapBuffer new_buffer = (MapBuffer){0};
 
 	new_buffer.action_cap = BUF_ACTION_CAP_INIT;
@@ -88,6 +166,12 @@ void MapAddBuffer(Map *map) {
 
 	new_buffer.ent_cap = BUF_ENT_CAP_INIT;
 	new_buffer.entities = entities;
+
+	new_buffer.clipboard = cb;
+
+	new_buffer.ent_selected = -1;
+
+	new_buffer.ent_prototype = (Entity) { .type = ASTEROID, .spritesheet = (&map->sl->spritesheets[SPR_ASTEROID]) };
 
 	map->buffers[map->buffer_count - 1] = new_buffer;
 	map->active_buffer = map->buffer_count - 1;
@@ -196,6 +280,9 @@ void ActionApply(BufferAction *action, MapBuffer *buffer) {
 		
 		Entity *ents_ptr = realloc(buffer->entities, sizeof(Entity) * buffer->ent_cap);
 		buffer->entities = ents_ptr;
+
+		Entity *cb_ptr = realloc(buffer->clipboard, sizeof(Entity) * buffer->ent_cap);
+		buffer->clipboard = cb_ptr;
 	}
 
 	// Copy action's entity data to buffer
@@ -249,7 +336,9 @@ void BufAddEntity(uint8_t type, uint8_t properties, float rotation, Vector2 posi
 	ent.spritesheet = ss;
 
 	ent.rotation = rotation;
-	ent.position = position = (Vector2){
+	ent.scale = 1;
+
+	ent.position = position = (Vector2) {
 		position.x - ent.spritesheet->frame_w * 0.5f,
 		position.y - ent.spritesheet->frame_h * 0.5f
 	};
@@ -269,5 +358,86 @@ void BufRemoveEntity(MapBuffer *buffer, Entity *entity) {
 
 	BufferAction action = (BufferAction) { .type = ACTION_REMOVE, .ent_count = 1, .ents_prev = ents_prev, .ents_curr = ents_curr };	
 	ActionApply(&action, buffer);
+}
+
+void BufTranslateEntity(MapBuffer *buffer, Entity *entity, Vector2 pos) {
+	entity->flags &= ~ENT_MOVING;
+
+	BufferAction move_action = (BufferAction) {
+		.type = ACTION_MODIFY,
+		.ent_count = 1,
+		.ents_prev = malloc(sizeof(Entity)),
+		.ents_curr = malloc(sizeof(Entity)),
+	};
+
+	Entity new_ent = *entity;
+	new_ent.position = (Vector2){pos.x - entity->spritesheet->frame_w * 0.5f, pos.y - entity->spritesheet->frame_h * 0.5f};
+
+	move_action.ents_prev[0] = *entity;
+	move_action.ents_curr[0] = new_ent;
+
+	ActionApply(&move_action, buffer);	
+}
+
+void BufScaleEntity(MapBuffer *buffer, Entity *entity, float scale) {
+	entity->flags &= ~ENT_MOVING;
+
+	BufferAction scale_action = (BufferAction) {
+		.type = ACTION_MODIFY,
+		.ent_count = 1,
+		.ents_prev = malloc(sizeof(Entity)),
+		.ents_curr = malloc(sizeof(Entity)),
+	};
+
+	Entity new_ent = *entity;
+	new_ent.scale = scale;
+
+	scale_action.ents_prev[0] = *entity;
+	scale_action.ents_curr[0] = new_ent;
+
+	ActionApply(&scale_action, buffer);	
+}
+
+void Copy(MapBuffer *buffer, Rectangle rec) {
+	buffer->cb_count = 0;
+
+	for(uint16_t i = 0; i < buffer->ent_count; i++) {
+		Entity *ent = &buffer->entities[i];
+		if(!(ent->flags & ENT_ACTIVE)) continue;
+
+		Rectangle ent_rec = (Rectangle) {
+			.x = ent->position.x,
+			.y = ent->position.y,
+			.width = ent->spritesheet->frame_w * ent->scale,
+			.height = ent->spritesheet->frame_h * ent->scale
+		};	
+
+		if(CheckCollisionRecs(rec, ent_rec)) {
+			buffer->clipboard[buffer->cb_count++] = *ent;
+
+			Vector2 pos_local = (Vector2) { ent->position.x - rec.x, ent->position.y - rec.y };
+			buffer->clipboard[buffer->cb_count - 1].position = pos_local;
+		}
+	}
+}
+
+void Paste(MapBuffer *buffer, Vector2 pos) {
+	Entity *ents_prev = malloc(sizeof(Entity) * buffer->cb_count);
+	for(uint16_t i = 0; i < buffer->cb_count; i++) ents_prev[i] = (Entity){0};
+
+	Entity *ents_curr = malloc(sizeof(Entity) * buffer->cb_count);
+	for(uint16_t i = 0; i < buffer->cb_count; i++) {
+		ents_curr[i] = buffer->clipboard[i];
+		ents_curr[i].position = (Vector2){ents_curr[i].position.x + pos.x, ents_curr[i].position.y + pos.y};
+	}
+
+	BufferAction paste_action = (BufferAction) {
+		.type = ACTION_INSERT,
+		.ent_count = buffer->cb_count,
+		.ents_prev = ents_prev,
+		.ents_curr = ents_curr
+	};
+
+	ActionApply(&paste_action, buffer);
 }
 

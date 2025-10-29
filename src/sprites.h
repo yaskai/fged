@@ -22,7 +22,7 @@ Spritesheet SpritesheetCreate(char *texture_path, Vector2 frame_dimensions);
 void SpritesheetClose(Spritesheet *spritesheet);
 
 void DrawSprite(Spritesheet *spritesheet, uint8_t frame_index, Vector2 position, uint8_t flags);
-void DrawSpritePro(Spritesheet *spritesheet, uint8_t frame_index, Vector2 position, float rotation, uint8_t flags);
+void DrawSpritePro(Spritesheet *spritesheet, uint8_t frame_index, Vector2 position, float rotation, float scale, Color color, uint8_t flags);
 void DrawSpriteRec(Spritesheet *spritesheet, uint8_t frame_index, Rectangle dest, uint8_t flags);
 
 uint8_t FrameIndex(Spritesheet *spritesheet, uint8_t c, uint8_t r);

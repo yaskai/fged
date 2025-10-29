@@ -31,6 +31,9 @@ typedef struct {
 } ObjectEntry;
 
 #define ENT_ACTIVE 		0x01
+#define ENT_MOVING		0x02
+#define ENT_SCALING		0x04  
+#define ENT_SPINNING	0x08
 
 typedef struct {
 	uint8_t flags;
@@ -41,6 +44,7 @@ typedef struct {
 	uint16_t id;
 
 	float rotation;
+	float scale;
 
 	Vector2 position;
 

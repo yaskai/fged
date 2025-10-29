@@ -32,8 +32,11 @@ void CursorUpdate(Cursor *cursor, Camera2D *cam, float dt) {
 		cursor->selection_rec_edit = (Rectangle){0};
 
 		// Enforce minimum area
-		if(cursor->selection_rec_final.width * cursor->selection_rec_final.height <= (4096 * 2))
+		if(cursor->selection_rec_final.width * cursor->selection_rec_final.height <= (4096 * 2)) {
 			cursor->selection_rec_final = (Rectangle){0};
+			cursor->flags &= ~CURSOR_BOX_OPEN;
+		} else 
+			cursor->flags |= CURSOR_BOX_OPEN;
 
 		cursor->flags &= ~CURSOR_SELECTION;
 	}
@@ -46,6 +49,7 @@ void CursorCameraControls(Cursor *cursor, Camera2D *cam, float dt) {
 
 	// Zoom in and out with mouse wheel
 	float scroll = GetMouseWheelMove();
+	if(cursor->flags & CURSOR_LOCK_ZOOM) scroll = 0;
 	if(fabs(scroll) > 0) {
 		cam->zoom += scroll * 0.25f;
 		cam->zoom = Clamp(cam->zoom, 0.4f, 2.0f);
@@ -94,6 +98,7 @@ void SelectionBox(Cursor *cursor) {
 	if(!(cursor->flags & CURSOR_SELECTION)) {
 		cursor->box_origin = cursor->world_pos;
 		cursor->flags |= CURSOR_SELECTION;
+		cursor->flags &= ~CURSOR_BOX_OPEN;
 		return;
 	}
 

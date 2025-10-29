@@ -7,6 +7,8 @@
 #define CURSOR_ON_UI		0x01
 #define CURSOR_PAN			0x02
 #define CURSOR_SELECTION	0x04
+#define CURSOR_LOCK_ZOOM	0x08
+#define CURSOR_BOX_OPEN		0x10
 
 typedef struct {
 	uint8_t flags;

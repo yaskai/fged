@@ -314,6 +314,14 @@ void UiObjectList(Ui *ui) {
 			if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 				color = clr_pressed;
 				ui->object_entries[i].flags |= OBJ_ENTRY_PRESSED;
+
+				ui->map->buffers[ui->map->active_buffer].ent_prototype = (Entity) {
+					.type = i,
+					.flags = 0,
+					.frame_id = ui->object_entries[i].frame_id,
+					.scale = 1,
+					.spritesheet = ui->object_entries[i].spritesheet,
+				};
 			}
 		}
 		
