@@ -195,8 +195,8 @@ void MapRemoveBuffer(Map *map, short id) {
 
 // Save map to file
 void MapWriteBuffer(Map *map, char *path) {
-	FILE *pF = fopen(path, "w"); 
-	if(!pF) {
+	FILE *pf = fopen(path, "w"); 
+	if(!pf) {
 		printf("ERROR: could not write to file path.\n");
 		return;
 	}
@@ -209,22 +209,36 @@ void MapWriteBuffer(Map *map, char *path) {
 
 		if(!(ent->flags & ENT_ACTIVE)) continue;
 		
-		fprintf(pF, "\n");
-		fprintf(pF, "flags: %d\n", ent->flags);
-		fprintf(pF, "type: %d\n", ent->type);
-		fprintf(pF, "properties: %d\n", ent->properties);
-		fprintf(pF, "rotation: %f\n", ent->rotation);
-		fprintf(pF, "position: %f, %f\n", ent->position.x, ent->position.y);
-		fprintf(pF, "frame: %d\n", ent->frame_id);
-		fprintf(pF, "spritesheet %d\n", ent->spritesheet->id);
-		fprintf(pF, "\n");
+		fprintf(pf, "\n");
+		fprintf(pf, "flags: %d\n", ent->flags);
+		fprintf(pf, "type: %d\n", ent->type);
+		fprintf(pf, "properties: %d\n", ent->properties);
+		fprintf(pf, "rotation: %f\n", ent->rotation);
+		fprintf(pf, "position: %f, %f\n", ent->position.x, ent->position.y);
+		fprintf(pf, "frame: %d\n", ent->frame_id);
+		fprintf(pf, "spritesheet %d\n", ent->spritesheet->id);
+		fprintf(pf, "\n");
 	}
 
-	fclose(pF);
+	fclose(pf);
 }
 
 // Read map from file
 void MapReadBuffer(Map *map, char *path) {
+	FILE *pf = 	fopen(path, "r");
+	if(!pf) {
+		printf("ERROR: could not read from file path.\n");
+		return;
+	}
+
+	uint16_t ent_count = 0;
+
+	char line[128];
+	while(fgets(line, sizeof(line), pf)) {
+		
+	}	
+
+	fclose(pf);
 }
 
 void MapDrawGrid(Map *map) {
