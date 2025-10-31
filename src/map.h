@@ -73,13 +73,16 @@ void MapRemoveBuffer(Map *map, short id);
 void MapWriteBuffer(Map *map, char *path);
 void MapReadBuffer(Map *map, char *path);
 
+void MapWriteBufferBin(Map *map, char *path);
+void MapReadBufferBin(Map *map, char *path);
+
 void MapDrawGrid(Map *map);
 
 void ActionApply(BufferAction *action, MapBuffer *buffer);
 void ActionUndo(MapBuffer *buffer); 
 void ActionRedo(MapBuffer *buffer);
 
-void BufAddEntity(uint8_t type, uint8_t properties, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer);
+void BufAddEntity(uint8_t type, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer);
 void BufRemoveEntity(MapBuffer *buffer, Entity *entity);
 
 void BufTranslateEntity(MapBuffer *buffer, Entity *entity, Vector2 pos);

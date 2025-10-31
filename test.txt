@@ -1,9 +1,10 @@
+entity_count:1
 
 flags: 1
-type: 0
-properties: 0
+type: 2
+properties: 3
 rotation: 0.000000
-position: 1088.000000, 695.000000
+position: 548.000000, 455.000000
 frame: 0
-spritesheet 0
+spritesheet 2
 

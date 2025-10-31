@@ -103,4 +103,6 @@ void UiSlidersInit(Ui *ui);
 void UiObjectListInit(Ui *ui);
 void UiTabsInit(Ui *ui);
 
+void EntEditProperties(Ui *ui);
+
 #endif

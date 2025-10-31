@@ -60,8 +60,8 @@ void CursorCameraControls(Cursor *cursor, Camera2D *cam, float dt) {
 		cam->target = Vector2Add(cam->target, diff);
 	}
 
-	// Pan camera on middle mouse button press 
-	if(IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+	// Pan camera
+	if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
 		if(!(cursor->flags & CURSOR_PAN)) cursor->pan_pos = cursor->world_pos;
 		cursor->flags |= CURSOR_PAN;
 
@@ -77,8 +77,8 @@ void CursorDraw(Cursor *cursor) {
 		DrawRectangleRec(cursor->selection_rec_edit, ColorAlpha(SKYBLUE, 0.75f));
 		DrawRectangleLinesEx(cursor->selection_rec_edit, 2, BLUE);
 	} else {
-		DrawRectangleRec(cursor->selection_rec_final, ColorAlpha(SKYBLUE, 0.25f));
-		DrawRectangleLinesEx(cursor->selection_rec_final, 2, GRAY);
+		//DrawRectangleRec(cursor->selection_rec_final, ColorAlpha(SKYBLUE, 0.25f));
+		//DrawRectangleLinesEx(cursor->selection_rec_final, 2, GRAY);
 	}
 }
 

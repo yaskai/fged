@@ -5,6 +5,7 @@
 #include <math.h>
 #include "raylib.h"
 #include "raymath.h"
+#include "include/raygui.h"
 #include "map.h"
 #include "sprites.h"
 
@@ -41,7 +42,7 @@ void MapUpdate(Map *map) {
 
 	// Add a new entity 
 	if(IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A) && !(map->cursor->flags & CURSOR_ON_UI)) 
-		BufAddEntity(buffer->ent_prototype.type, 0, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
+		BufAddEntity(buffer->ent_prototype.type, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
 
 	if(buffer->ent_selected > -1 && buffer->entities[buffer->ent_selected].flags & ENT_ACTIVE) {
 		Entity *ent = &buffer->entities[buffer->ent_selected];
@@ -71,6 +72,9 @@ void MapUpdate(Map *map) {
 
 		if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ent->flags & ENT_MOVING) 
 			BufTranslateEntity(buffer, ent, map->cursor->world_pos);
+
+		//if(IsKeyPressed(KEY_E) && ent->type >= SPAWNER_FISH) 
+			//ent->flags ^= ENT_PROPEDIT;
 	}
 
 	if(IsKeyPressed(KEY_Z)) ActionUndo(buffer);
@@ -86,7 +90,7 @@ void MapUpdate(Map *map) {
 		Paste(buffer, map->cursor->world_pos);
 	}
 
-	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) {
 		if(buffer->ent_selected > -1)
 			buffer->entities[buffer->ent_selected].flags &= ~ENT_SCALING;
 
@@ -177,6 +181,7 @@ void MapAddBuffer(Map *map) {
 	map->active_buffer = map->buffer_count - 1;
 }
 
+// Close an active map buffer
 void MapRemoveBuffer(Map *map, short id) {
 	if(id >= map->buffer_count) return;
 
@@ -204,15 +209,17 @@ void MapWriteBuffer(Map *map, char *path) {
 	if(map->active_buffer < 0) return;
 	MapBuffer *buffer = &map->buffers[map->active_buffer];
 
+	fprintf(pf, "entity_count:%d\n", buffer->ent_count);
+
 	for(uint16_t i = 0; i < buffer->ent_count; i++) {
 		Entity *ent = &buffer->entities[i];
-
 		if(!(ent->flags & ENT_ACTIVE)) continue;
 		
 		fprintf(pf, "\n");
 		fprintf(pf, "flags: %d\n", ent->flags);
 		fprintf(pf, "type: %d\n", ent->type);
-		fprintf(pf, "properties: %d\n", ent->properties);
+		fprintf(pf, "rare_props: %d\n", ent->rare_props);
+		fprintf(pf, "size_props: %d\n", ent->size_props);
 		fprintf(pf, "rotation: %f\n", ent->rotation);
 		fprintf(pf, "position: %f, %f\n", ent->position.x, ent->position.y);
 		fprintf(pf, "frame: %d\n", ent->frame_id);
@@ -231,16 +238,30 @@ void MapReadBuffer(Map *map, char *path) {
 		return;
 	}
 
-	uint16_t ent_count = 0;
+	MapBuffer buffer = (MapBuffer){0};
 
 	char line[128];
 	while(fgets(line, sizeof(line), pf)) {
+		char *split = strchr(line, ':'); 
+		if(!split) continue;
 		
-	}	
+		*split = '\0';
+		char *key = line;
+		char *val = split + 1;
+	}
 
 	fclose(pf);
 }
 
+// Write map buffer to binary file
+void MapWriteBufferBin(Map *map, char *path) {
+}
+
+// Read map buffer from binary file
+void MapReadBufferBin(Map *map, char *path) {
+}
+
+// Draw a grid of lines
 void MapDrawGrid(Map *map) {
 	for(uint16_t i = 0; i < (16 * 16); i++) {
 		uint16_t c = i % 16;
@@ -342,11 +363,10 @@ void ActionRedo(MapBuffer *buffer) {
 	}
 }
 
-void BufAddEntity(uint8_t type, uint8_t properties, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer) {
+void BufAddEntity(uint8_t type, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer) {
 	Entity ent = (Entity){0};
 	ent.flags = (ENT_ACTIVE);
 	ent.type = type;
-	ent.properties = properties;
 	ent.spritesheet = ss;
 
 	ent.rotation = rotation;

@@ -145,7 +145,8 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	// Draw panels
 	for(uint8_t i = 0; i < 4; i++) {
-		GuiPanel(ui->panel_recs[i], ui->panel_text[i]);
+		//GuiPanel(ui->panel_recs[i], ui->panel_text[i]);
+		GuiPanel(ui->panel_recs[i], "");
 		
 		// Update cursor on ui flag
 		if(CheckCollisionPointRec(cursor->screen_pos, ui->panel_recs[i]))
@@ -158,7 +159,6 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	if(ui->flags & UI_QUIT_PROMPT) UiQuitPrompt(ui);
 
-	// TODO:
 	// File buffer tabs
 	UiTabs(ui);
 
@@ -212,8 +212,8 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	// TODO:
 	// Scroll sliders for camera movement
-	SliderUpdate(&ui->sliders[0]);	
-	SliderUpdate(&ui->sliders[1]);
+	//SliderUpdate(&ui->sliders[0]);	
+	//SliderUpdate(&ui->sliders[1]);
 
 	// Draw camera sliders corner rectangle
 	GuiDrawRectangle(ui->cam_slider_corner, 0, BLACK, GRAY);
@@ -228,6 +228,17 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 
 	// Object list
 	UiObjectList(ui);
+
+	if(ui->map->active_buffer > -1) {
+		MapBuffer *buffer = &ui->map->buffers[ui->map->active_buffer];
+		
+		if(buffer->ent_selected > -1) {
+			Entity *ent = &buffer->entities[buffer->ent_selected];
+			
+			if(ent->type >= SPAWNER_FISH)
+				EntEditProperties(ui);
+		}
+	}
 }
 
 // Update and render quit prompt screen, user can confirm to exit app or cancel and return 
@@ -443,19 +454,34 @@ void UiStyleLoadFromName(Ui *ui, char *name) {
 // Set panel data (rectangles and text)
 void UiPanelsInit(Ui *ui) {
 	// Set box values 
+	/*
 	Rectangle recs[] = {
-		{0, 0, ui->ww, 100}, 
-		{0, ui->wh - 100, ui->ww, 100}, 
-		{0, 100, 100, ui->wh - 200}, 
-		{ui->ww - 100, 100, 100, ui->wh - 200}
+		{0, 0, ui->ww, 100},						// top 
+		{0, ui->wh - 100, ui->ww, 100}, 			// bot
+		{0, 100, 100, ui->wh - 200}, 				// lft
+		{ui->ww - 100, 100, 100, ui->wh - 200}		// rgt
+	};
+	*/
+
+	float top_h  = 100;
+	float bot_h  = 200;
+
+	float side_y = top_h;
+	float side_h = ui->wh - (top_h + bot_h);
+	
+	Rectangle recs[] = {
+		{0, 0, ui->ww, top_h},
+		{0, ui->wh - bot_h, ui->ww, bot_h},
+		{0, side_y, 100, side_h},
+		{ui->ww - 100, side_y, 100, side_h},
 	};
 
 	// Set text values
 	char *text[] = {
-		"Top",
-		"Bottom",
-		"Objects",
-		"Right"
+		"",
+		"",
+		"",
+		""
 	};
 
 	// Copy data to ui struct
@@ -586,7 +612,7 @@ void UiObjectListInit(Ui *ui) {
 			.flags = 0,
 			.type = SPAWNER_FISH,
 			.frame_id = 0,
-			.spritesheet = NULL,
+			.spritesheet = &ui->sl->spritesheets[2],
 			.label = "fish spawner"
 		},
 
@@ -620,5 +646,46 @@ void UiTabsInit(Ui *ui) {
 		.width = 32,
 		.height = 32
 	};	
+}
+
+void EntEditProperties(Ui *ui) {
+	MapBuffer *buffer = &ui->map->buffers[ui->map->active_buffer];
+	Entity *ent = &buffer->entities[buffer->ent_selected];
+
+	char *text[] = { "common", "uncommon", "rare", "legendary" };
+	float h = (ui->panel_recs[PANEL_BOT].height - 32) / 4;
+
+	// Rarity checkboxes
+	for(short i = 0; i < 4; i++) {
+		Rectangle rec = (Rectangle) {
+			.x = ui->panel_recs[PANEL_LFT].width,
+			.y = ui->panel_recs[PANEL_BOT].y + (i*32) + 32,
+			.width = 32,
+			.height = 32 
+		};
+
+		bool check = ent->rare_props & (1 << i);
+		if(GuiCheckBox(rec, text[i], &check)) {
+			ent->rare_props ^= (1 << i);	
+		}
+	}
+
+	char *size_text[] = { "tiny", "small", "regular", "large", "behemoth" };
+	h = (ui->panel_recs[PANEL_BOT].height - 32) / 5;
+
+	// Size checkboxes	
+	for(short i = 0; i < 5; i++) {
+		Rectangle rec = (Rectangle) {
+			.x = ui->panel_recs[PANEL_LFT].width * 5,
+			.y = ui->panel_recs[PANEL_BOT].y + (i*32) + 32,
+			.width = 32,
+			.height = 32
+		};
+
+		bool check = ent->size_props & (1 << i);
+		if(GuiCheckBox(rec, size_text[i], &check)) {
+			ent->size_props ^= (1 << i);
+		}
+	}
 }
 
