@@ -111,6 +111,7 @@ void MapDraw(Map *map) {
 	for(uint16_t i = 0; i < buffer->ent_count; i++) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;	
+
 		if(ent->flags & ENT_MOVING) continue;
 		if(ent->flags & ENT_SCALING) continue;
 
@@ -150,10 +151,10 @@ void MapClose(Map *map) {
 
 void MapBufferInit(MapBuffer *buffer) {
 	buffer->ent_cap = BUF_ENT_CAP_INIT;
-	buffer->entities = (malloc)(sizeof(Entity) * buffer->ent_cap);
+	buffer->entities = malloc(sizeof(Entity) * buffer->ent_cap);
 
 	buffer->action_cap = BUF_ACTION_CAP_INIT;
-	buffer->actions = (malloc)(sizeof(BufferAction) * buffer->action_cap);
+	buffer->actions = malloc(sizeof(BufferAction) * buffer->action_cap);
 }
 
 void MapAddBuffer(Map *map) {
@@ -249,9 +250,10 @@ void MapWriteBuffer(Map *map, char *path) {
 		fprintf(pf, "rare_props: %d\n", ent->rare_props);
 		fprintf(pf, "size_props: %d\n", ent->size_props);
 		fprintf(pf, "rotation: %f\n", ent->rotation);
+		fprintf(pf, "scale: %f\n", ent->scale);
 		fprintf(pf, "position: %f, %f\n", ent->position.x, ent->position.y);
 		fprintf(pf, "frame: %d\n", ent->frame_id);
-		fprintf(pf, "spritesheet %d\n", ent->spritesheet->id);
+		fprintf(pf, "spritesheet: %d\n", ent->spritesheet->id);
 		fprintf(pf, "\n");
 	}
 
@@ -269,7 +271,7 @@ void MapReadBuffer(Map *map, char *path) {
 	MapBuffer buffer = (MapBuffer){0};
 	MapBufferInit(&buffer);
 
-	uint16_t curr_id;
+	uint16_t curr_id = 0;
 	Entity *curr_ent = NULL;
 
 	char line[128];
@@ -311,6 +313,10 @@ void MapReadBuffer(Map *map, char *path) {
 			float rotation;
 			sscanf(val, "%f", &rotation);
 			curr_ent->rotation = rotation;
+		} else if(!strcmp(key, "scale")) {
+			float scale;
+			sscanf(val, "%f", &scale);
+			curr_ent->scale = scale;
 		} else if(!strcmp(key, "position")) {
 			Vector2 position;
 			sscanf(val, "%f, %f", &position.x, &position.y);

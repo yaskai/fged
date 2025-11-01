@@ -214,9 +214,8 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 	// Scroll sliders for camera movement
 	//SliderUpdate(&ui->sliders[0]);	
 	//SliderUpdate(&ui->sliders[1]);
-
 	// Draw camera sliders corner rectangle
-	GuiDrawRectangle(ui->cam_slider_corner, 0, BLACK, GRAY);
+	//GuiDrawRectangle(ui->cam_slider_corner, 0, BLACK, GRAY);
 
 	// File dialogue (for importing and exporting maps)
 	// lock cursor edit actions while dialogue is active
