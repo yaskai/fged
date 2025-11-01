@@ -1,10 +1,78 @@
-entity_count:1
+entity_count:7
 
+[asteroid]
 flags: 1
-type: 2
-properties: 3
+type: 0
+rare_props: 0
+size_props: 0
 rotation: 0.000000
-position: 548.000000, 455.000000
+position: 1192.500122, 961.500000
 frame: 0
-spritesheet 2
+spritesheet 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+position: 2198.214355, 1171.500000
+frame: 0
+spritesheet 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+position: 1968.214600, 554.000000
+frame: 0
+spritesheet 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+position: 1255.714600, 1611.499756
+frame: 0
+spritesheet 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+position: 740.714661, 1311.500000
+frame: 0
+spritesheet 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+position: 1855.714600, 1124.000000
+frame: 0
+spritesheet 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+position: 2640.714355, 1693.999756
+frame: 0
+spritesheet 0
 

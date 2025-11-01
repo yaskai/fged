@@ -282,6 +282,9 @@ void UiFileDiag(Ui *ui) {
 	// TODO:
 	// integrate with file I/O
 	if(file_diag_state.SelectFilePressed) {
+		char r_path[512];
+		strcpy(r_path, TextFormat("%s" PATH_SEPERATOR "%s", file_diag_state.dirPathText, file_diag_state.fileNameText));
+		MapReadBuffer(ui->map, r_path);
 	}
 
 	if(IsKeyPressed(KEY_ESCAPE))
@@ -665,7 +668,7 @@ void EntEditProperties(Ui *ui) {
 		};
 
 		bool check = ent->rare_props & (1 << i);
-		if(GuiCheckBox(rec, text[i], &check)) {
+		if(GuiCheckBox(rec, text[i], &check)) { 
 			ent->rare_props ^= (1 << i);	
 		}
 	}

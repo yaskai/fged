@@ -148,6 +148,14 @@ void MapClose(Map *map) {
 	for(uint8_t i = 0; i < map->buffer_count; i++) free(&map->buffers[i]);
 }
 
+void MapBufferInit(MapBuffer *buffer) {
+	buffer->ent_cap = BUF_ENT_CAP_INIT;
+	buffer->entities = (malloc)(sizeof(Entity) * buffer->ent_cap);
+
+	buffer->action_cap = BUF_ACTION_CAP_INIT;
+	buffer->actions = (malloc)(sizeof(BufferAction) * buffer->action_cap);
+}
+
 void MapAddBuffer(Map *map) {
 	map->buffer_count++;
 
@@ -214,8 +222,28 @@ void MapWriteBuffer(Map *map, char *path) {
 	for(uint16_t i = 0; i < buffer->ent_count; i++) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;
+
+		char *type_str = "";
+		switch(ent->type) {
+			case ASTEROID:
+				type_str = "asteroid";
+				break;
+
+			case PLAYER:
+				type_str = "player";
+				break;
+
+			case SPAWNER_FISH:
+				type_str = "spawner_fish";
+				break;
+
+			case SPAWNER_ITEM:
+				type_str = "spawner_item";
+				break;
+		}
 		
 		fprintf(pf, "\n");
+		fprintf(pf, "[%s]\n", type_str);
 		fprintf(pf, "flags: %d\n", ent->flags);
 		fprintf(pf, "type: %d\n", ent->type);
 		fprintf(pf, "rare_props: %d\n", ent->rare_props);
@@ -239,16 +267,77 @@ void MapReadBuffer(Map *map, char *path) {
 	}
 
 	MapBuffer buffer = (MapBuffer){0};
+	MapBufferInit(&buffer);
+
+	uint16_t curr_id;
+	Entity *curr_ent = NULL;
 
 	char line[128];
 	while(fgets(line, sizeof(line), pf)) {
+		if(line[0] == '[') {
+			if(curr_id + 1 > buffer.ent_cap) {
+				buffer.ent_cap *= 2;
+				Entity *new_ptr = realloc(buffer.entities, sizeof(Entity) * buffer.ent_cap);
+				buffer.entities = new_ptr;
+			}
+
+			curr_ent = &buffer.entities[curr_id++];
+		}
+
 		char *split = strchr(line, ':'); 
 		if(!split) continue;
 		
 		*split = '\0';
 		char *key = line;
 		char *val = split + 1;
+
+		if(!strcmp(key, "flags")) {
+			int flags;
+			sscanf(val, "%d", &flags);
+			curr_ent->flags = flags;
+		} else if(!strcmp(key, "type")) {
+			int type;
+			sscanf(val, "%d", &type);
+			curr_ent->type = type;
+		} else if(!strcmp(key, "rare_props")) {
+			int rare_props;
+			sscanf(val, "%d", &rare_props);
+			curr_ent->rare_props = rare_props;
+		} else if(!strcmp(key, "size_props")) {
+			int size_props;
+			sscanf(val, "%d", &size_props);
+			curr_ent->size_props = size_props;
+		} else if(!strcmp(key, "rotation")) {
+			float rotation;
+			sscanf(val, "%f", &rotation);
+			curr_ent->rotation = rotation;
+		} else if(!strcmp(key, "position")) {
+			Vector2 position;
+			sscanf(val, "%f, %f", &position.x, &position.y);
+			curr_ent->position = position;
+		} else if(!strcmp(key, "spritesheet")) {
+			int spritesheet_id;
+			sscanf(val, "%d", &spritesheet_id);
+			curr_ent->spritesheet = &map->sl->spritesheets[spritesheet_id];
+		} else if(!strcmp(key, "frame")) {
+			int frame_id;
+			sscanf(val, "%d", &frame_id);
+			curr_ent->frame_id = frame_id;
+		}
 	}
+
+	buffer.ent_count = curr_id + 1;
+
+	map->buffer_count++;
+
+	if(map->buffer_count > map->buffer_cap - 1) {
+		map->buffer_cap *= 2;
+
+		MapBuffer *buffers_ptr = (MapBuffer*)realloc(map->buffers, sizeof(MapBuffer) * map->buffer_cap);
+		map->buffers = buffers_ptr;
+	}
+
+	map->buffers[map->buffer_count - 1] = buffer;
 
 	fclose(pf);
 }
