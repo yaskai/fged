@@ -10,6 +10,7 @@
 #include "sprites.h"
 
 float temp_scale = 1.0f;
+float temp_spin  = 0.0f;
 
 void MapInit(Map *map, Camera2D *cam, Cursor *cursor, SpriteLoader *sl) {
 	map->cam = cam;
@@ -70,25 +71,42 @@ void MapUpdate(Map *map) {
 			temp_scale = Clamp(temp_scale, 0.1f, 10.0f);
 		}
 
+		if(IsKeyPressed(KEY_A)) {
+			ent->flags ^= ENT_SPINNING;
+			map->cursor->flags ^= CURSOR_LOCK_ZOOM;
+
+			if(!(ent->flags & ENT_SPINNING)) {
+				Entity ent_modifed = *ent;
+				ent_modifed.rotation = temp_spin;
+
+				BufModifyEntity(buffer, ent, ent_modifed);
+			}
+		}
+		
+		if(ent->flags & ENT_SPINNING) {
+			float scroll = GetMouseWheelMove();
+			if(fabs(scroll) > 0) {
+				temp_spin += scroll;
+			}
+
+			if(temp_spin < 0) temp_spin = 360;
+			else if(temp_spin > 360) temp_spin = 0;
+		}
+
 		if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && ent->flags & ENT_MOVING) 
 			BufTranslateEntity(buffer, ent, map->cursor->world_pos);
-
-		//if(IsKeyPressed(KEY_E) && ent->type >= SPAWNER_FISH) 
-			//ent->flags ^= ENT_PROPEDIT;
 	}
 
 	if(IsKeyPressed(KEY_Z)) ActionUndo(buffer);
 	if(IsKeyPressed(KEY_R)) ActionRedo(buffer);
 
 	if(map->cursor->flags & CURSOR_BOX_OPEN) {
-		if(IsKeyPressed(KEY_C)) {
+		if(IsKeyPressed(KEY_C))
 			Copy(buffer, map->cursor->selection_rec_final);
-		}
 	}
 
-	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) {
+	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) 
 		Paste(buffer, map->cursor->world_pos);
-	}
 
 	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) {
 		if(buffer->ent_selected > -1)
@@ -112,8 +130,11 @@ void MapDraw(Map *map) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;	
 
-		if(ent->flags & ENT_MOVING) continue;
-		if(ent->flags & ENT_SCALING) continue;
+		if(
+			(ent->flags & ENT_MOVING) 	||
+			(ent->flags & ENT_SCALING)  ||
+			(ent->flags & ENT_SPINNING)
+		) continue;
 
 		DrawSpritePro(ent->spritesheet, ent->frame_id, ent->position, ent->rotation, ent->scale, WHITE, 0);
 	}
@@ -135,11 +156,11 @@ void MapDraw(Map *map) {
 			rec.y = map->cursor->world_pos.y - ent->spritesheet->frame_h * 0.5f;
 			color = WHITE;
 		}
+		
+		float scale = (ent->flags & ENT_SCALING) ? temp_scale : ent->scale;
+		float rotation = (ent->flags & ENT_SPINNING) ? temp_spin : ent->rotation;
 
-		float scale = ent->scale;
-		if(ent->flags & ENT_SCALING) scale = temp_scale;
-
-		DrawSpritePro(ent->spritesheet, ent->frame_id, (Vector2){rec.x, rec.y}, ent->rotation, scale, color, 0);
+		DrawSpritePro(ent->spritesheet, ent->frame_id, (Vector2){rec.x, rec.y}, rotation, scale, color, 0);
 	}
 }
 
@@ -525,6 +546,20 @@ void BufScaleEntity(MapBuffer *buffer, Entity *entity, float scale) {
 	scale_action.ents_curr[0] = new_ent;
 
 	ActionApply(&scale_action, buffer);	
+}
+
+void BufModifyEntity(MapBuffer *buffer, Entity *original, Entity modified) {
+	BufferAction action = (BufferAction) {
+		.type = ACTION_MODIFY,	
+		.ent_count = 1,
+		.ents_prev = malloc(sizeof(Entity)),
+		.ents_curr = malloc(sizeof(Entity))
+	};
+
+	action.ents_prev[0] = *original;
+	action.ents_curr[0] = modified;
+
+	ActionApply(&action, buffer);
 }
 
 void Copy(MapBuffer *buffer, Rectangle rec) {

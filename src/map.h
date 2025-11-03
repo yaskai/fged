@@ -89,6 +89,8 @@ void BufRemoveEntity(MapBuffer *buffer, Entity *entity);
 void BufTranslateEntity(MapBuffer *buffer, Entity *entity, Vector2 pos);
 void BufScaleEntity(MapBuffer *buffer, Entity *entity, float scale);
 
+void BufModifyEntity(MapBuffer *buffer, Entity *original, Entity modified);
+
 void Copy(MapBuffer *buffer, Rectangle rec);
 void Paste(MapBuffer *buffer, Vector2 pos);
 
