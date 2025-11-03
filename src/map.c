@@ -56,13 +56,17 @@ void MapUpdate(Map *map) {
 
 		if(IsKeyPressed(KEY_S)) {
 			ent->flags ^= ENT_SCALING;
-			map->cursor->flags ^= CURSOR_LOCK_ZOOM;
+			//map->cursor->flags ^= CURSOR_LOCK_ZOOM;
 
-			if(!(ent->flags & ENT_SCALING)) 
+			if(!(ent->flags & ENT_SCALING)) {
 				BufScaleEntity(buffer, ent, temp_scale);
+				map->cursor->flags ^= CURSOR_LOCK_ZOOM;
+			}
 		}
 
 		if(ent->flags & ENT_SCALING) {
+			map->cursor->flags |= CURSOR_LOCK_ZOOM;
+
 			float scroll = GetMouseWheelMove();
 			if(fabsf(scroll) > 0) {
 				temp_scale += scroll;
@@ -73,17 +77,20 @@ void MapUpdate(Map *map) {
 
 		if(IsKeyPressed(KEY_A)) {
 			ent->flags ^= ENT_SPINNING;
-			map->cursor->flags ^= CURSOR_LOCK_ZOOM;
+			//map->cursor->flags ^= CURSOR_LOCK_ZOOM;
 
 			if(!(ent->flags & ENT_SPINNING)) {
 				Entity ent_modifed = *ent;
 				ent_modifed.rotation = temp_spin;
 
 				BufModifyEntity(buffer, ent, ent_modifed);
+				map->cursor->flags ^= CURSOR_LOCK_ZOOM;
 			}
 		}
 		
 		if(ent->flags & ENT_SPINNING) {
+			map->cursor->flags |= CURSOR_LOCK_ZOOM;
+
 			float scroll = GetMouseWheelMove();
 			if(fabs(scroll) > 0) {
 				temp_spin += scroll;
