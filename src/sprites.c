@@ -126,5 +126,6 @@ void LoadAllSprites(SpriteLoader *sl) {
 	LoadSpriteheet(sl, "resources/sprites/asteroid00.png", (Vector2){128, 128});
 	LoadSpriteheet(sl, "resources/sprites/player_sheet.png", (Vector2){64, 64});
 	LoadSpriteheet(sl, "resources/sprites/fish01.png", (Vector2){128, 128});
+	LoadSpriteheet(sl, "resources/sprites/dot.png", (Vector2){16, 16});
 }
 

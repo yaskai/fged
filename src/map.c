@@ -93,7 +93,7 @@ void MapUpdate(Map *map) {
 
 			float scroll = GetMouseWheelMove();
 			if(fabs(scroll) > 0) {
-				temp_spin += scroll;
+				temp_spin += (scroll * 2);
 			}
 
 			if(temp_spin < 0) temp_spin = 360;
