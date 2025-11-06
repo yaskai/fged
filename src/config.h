@@ -11,6 +11,7 @@ typedef struct {
 	unsigned int window_width, window_height;
 	unsigned int window_flags;
 	unsigned int gui_style;
+	unsigned int intro;
 } Config;
 
 void ConfRead(Config *conf, char *file_path);

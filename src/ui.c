@@ -387,6 +387,11 @@ void UiTabs(Ui *ui) {
 	GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
 
 	for(uint8_t i = 0; i < ui->map->buffer_count; i++) {
+		if(ui->map->active_buffer == i) {
+			GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(RAYWHITE));
+			GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, ColorToInt(RAYWHITE));
+		};
+
 		Rectangle rec = (Rectangle) {
 			.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (i * 200),
 			.y = ui->tab_home_rec.y,
@@ -401,17 +406,35 @@ void UiTabs(Ui *ui) {
 			.height = 32
 		};
 
-		//if(GuiButton(rec, TextFormat("%d. %s", i + 1, ui->map->buffers[i].name))) {
+		bool close = (CheckCollisionPointRec(GetMousePosition(), close_rec) && ui->active_dropdown < 0);
+		if(close) {
+			GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, ColorToInt(RED));
+		}
+
 		if(GuiButton(rec, TextFormat("%s", ui->map->buffers[i].name)) && ui->active_dropdown < 0) {
 			ui->map->active_buffer = i;
 
-			if(CheckCollisionPointRec(GetMousePosition(), close_rec) && ui->active_dropdown < 0) {
+			if(close) {
 				MapRemoveBuffer(ui->map, i);
+
+				GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+				GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
+
 				break;
 			}
 		}
 
-		GuiDrawIcon(ICON_CROSS, close_rec.x + close_rec.width * 0.25f, close_rec.y + close_rec.height * 0.25f, 1, RED);
+		GuiDrawIcon(
+			ICON_CROSS,
+			close_rec.x + close_rec.width * 0.25f,
+			close_rec.y + close_rec.height * 0.25f,
+			1,
+			(close) ? RED : LIGHTGRAY 
+		);
+
+		GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+		GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
+		GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, GuiGetStyle(DEFAULT, BORDER_COLOR_FOCUSED));
 	}
 
 	GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);

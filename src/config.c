@@ -35,6 +35,7 @@ void ConfRead(Config *conf, char *file_path) {
 	printf("window_width=%d\n", conf->window_width);
 	printf("window_height=%d\n", conf->window_height);
 	printf("gui_style=%d\n", conf->gui_style);
+	printf("intro=%d", conf->intro);
 	puts("\e[0;37m");
 }
 
@@ -58,5 +59,7 @@ void ConfParseLine(Config *conf, char *line) {
 		sscanf(val, "%d", &conf->window_height);
 	else if(strcmp(key, "gui_style") == 0)
 		sscanf(val, "%d", &conf->gui_style);
+	else if(strcmp(key, "intro") == 0)
+		sscanf(val, "%d", &conf->intro);
 }
 

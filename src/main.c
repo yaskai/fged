@@ -8,7 +8,6 @@ int main() {
 	// Main loop runs while false
 	bool exit_window = false;
 
-	PrintIntroImg("resources/intro_img2.txt");
 
 	// Initialize config struct with some default values
 	Config conf = (Config) {
@@ -16,12 +15,14 @@ int main() {
 		.window_width = 1920,
 		.window_height = 1080,
 		.window_flags = 0,
-		.gui_style = 0
+		.gui_style = 0,
+		.intro = 0
 	};
 
 	// Read configuration file
 	// if not found, defaults are used
 	ConfRead(&conf, "options.conf");
+	if(conf.intro) PrintIntroImg("resources/intro_img2.txt");
 
 	// Set window flags
 	SetConfigFlags(conf.window_flags | FLAG_WINDOW_HIGHDPI);
