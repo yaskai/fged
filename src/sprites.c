@@ -115,7 +115,7 @@ void LoadSpriteheet(SpriteLoader *sl, char *path, Vector2 frame_dimensions) {
 		Spritesheet *ptr_spritesheets;
 		ptr_spritesheets = realloc(sl->spritesheets, sizeof(Spritesheet) * sl->capacity);	
 
-		sl->spritesheets = ptr_spritesheets;	
+		sl->spritesheets = ptr_spritesheets;
 	}
 
 	// Add new spritesheet to array

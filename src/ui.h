@@ -11,6 +11,7 @@
 #define UI_QUIT_REQ		0x01
 #define UI_QUIT_PROMPT	0x02
 #define UI_FILE_DIAG	0x04
+#define UI_BUFNAME_DIAG	0x08
 
 #define DROP_COLS	3
 #define DROP_ROWS 	8
@@ -79,6 +80,8 @@ typedef struct {
 	ObjectEntry object_entries[4];
 
 	Font font;
+
+	Entity prototypes[4];
 
 	char path_import[512];
 	char path_export[512];

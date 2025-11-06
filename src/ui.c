@@ -26,8 +26,16 @@ void fn_new(Ui *ui)  { MapAddBuffer(ui->map); }
 
 void fn_save(Ui *ui) { 
 	MapBuffer *buffer = &ui->map->buffers[ui->map->active_buffer];
+	
+	if(!strcmp(buffer->name, "")) 
+		ui->flags |= UI_BUFNAME_DIAG;
+	else {
+		char path[128];
+		strcpy(path, "./");
+		strcat(path, buffer->name);
 
-	MapWriteBuffer(ui->map, buffer->name);
+		MapWriteBuffer(ui->map, path);
+	}
 }
 
 void fn_open(Ui *ui) { ui->flags |= UI_FILE_DIAG;   }
@@ -244,6 +252,17 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 				EntEditProperties(ui);
 		}
 	}
+
+	if(ui->flags & UI_BUFNAME_DIAG) {
+		Rectangle rec = (Rectangle){ ui->ww * 0.5f - 250, ui->wh * 0.5f - 150, 500, 300 };
+		MapBuffer *buffer = &ui->map->buffers[ui->map->active_buffer];
+
+		GuiTextBox(rec, buffer->name, 255, 1);
+		if(IsKeyPressed(KEY_ENTER)) {
+			ui->flags &= ~UI_BUFNAME_DIAG;
+			fn_save(ui);
+		}
+	}
 }
 
 // Update and render quit prompt screen, user can confirm to exit app or cancel and return 
@@ -382,7 +401,8 @@ void UiTabs(Ui *ui) {
 			.height = 32
 		};
 
-		if(GuiButton(rec, TextFormat("%d. ", i + 1))) {
+		//if(GuiButton(rec, TextFormat("%d. %s", i + 1, ui->map->buffers[i].name))) {
+		if(GuiButton(rec, TextFormat("%s", ui->map->buffers[i].name))) {
 			ui->map->active_buffer = i;
 
 			if(CheckCollisionPointRec(GetMousePosition(), close_rec)) {

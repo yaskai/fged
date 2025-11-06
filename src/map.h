@@ -45,7 +45,7 @@ typedef struct {
 	Rectangle cb_rec;
 	Entity *clipboard;
 
-	char name[32];
+	char name[128];
 } MapBuffer;
 
 typedef struct {

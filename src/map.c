@@ -30,11 +30,16 @@ void MapUpdate(Map *map) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;
 
+		Vector2 diff = (Vector2) {
+			(ent->spritesheet->frame_w * ent->scale - ent->spritesheet->frame_w) / 2, 
+			(ent->spritesheet->frame_h * ent->scale - ent->spritesheet->frame_h) / 2, 
+		};
+		
 		Rectangle rec = (Rectangle) {
-			.x = ent->position.x,
-			.y = ent->position.y,
-			.width = ent->spritesheet->frame_w,
-			.height = ent->spritesheet->frame_h
+			ent->position.x - diff.x,
+			ent->position.y - diff.y,
+			ent->spritesheet->frame_w * ent->scale,
+			ent->spritesheet->frame_h * ent->scale
 		};
 
 		if(CheckCollisionPointRec(map->cursor->world_pos, rec)) 
@@ -42,8 +47,10 @@ void MapUpdate(Map *map) {
 	}
 
 	// Add a new entity 
-	if(IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A) && !(map->cursor->flags & CURSOR_ON_UI)) 
-		BufAddEntity(buffer->ent_prototype.type, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
+	if(IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A) && !(map->cursor->flags & CURSOR_ON_UI)) {
+		if(buffer->ent_prototype.spritesheet != NULL) 
+			BufAddEntity(buffer->ent_prototype.type, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
+	}
 
 	if(buffer->ent_selected > -1 && buffer->entities[buffer->ent_selected].flags & ENT_ACTIVE) {
 		Entity *ent = &buffer->entities[buffer->ent_selected];
@@ -77,7 +84,6 @@ void MapUpdate(Map *map) {
 
 		if(IsKeyPressed(KEY_A)) {
 			ent->flags ^= ENT_SPINNING;
-			//map->cursor->flags ^= CURSOR_LOCK_ZOOM;
 
 			if(!(ent->flags & ENT_SPINNING)) {
 				Entity ent_modifed = *ent;
@@ -137,8 +143,7 @@ void MapDraw(Map *map) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;	
 
-		if(
-			(ent->flags & ENT_MOVING) 	||
+		if( (ent->flags & ENT_MOVING) 	||
 			(ent->flags & ENT_SCALING)  ||
 			(ent->flags & ENT_SPINNING)
 		) continue;
@@ -183,6 +188,9 @@ void MapBufferInit(MapBuffer *buffer) {
 
 	buffer->action_cap = BUF_ACTION_CAP_INIT;
 	buffer->actions = malloc(sizeof(BufferAction) * buffer->action_cap);
+
+	buffer->ent_count = 0;
+	buffer->curr_action = 0;
 }
 
 void MapAddBuffer(Map *map) {
@@ -299,7 +307,7 @@ void MapReadBuffer(Map *map, char *path) {
 	MapBuffer buffer = (MapBuffer){0};
 	MapBufferInit(&buffer);
 
-	uint16_t curr_id = 0;
+	int16_t curr_id = 0;
 	Entity *curr_ent = NULL;
 
 	char line[128];
@@ -312,10 +320,11 @@ void MapReadBuffer(Map *map, char *path) {
 			}
 
 			curr_ent = &buffer.entities[curr_id++];
+			*curr_ent = (Entity){ .id = curr_id - 1 };
 		}
 
 		char *split = strchr(line, ':'); 
-		if(!split) continue;
+		if(!split || !curr_ent) continue;
 		
 		*split = '\0';
 		char *key = line;
@@ -360,18 +369,20 @@ void MapReadBuffer(Map *map, char *path) {
 		}
 	}
 
-	buffer.ent_count = curr_id + 1;
+	buffer.ent_count = curr_id;
 
-	map->buffer_count++;
-
-	if(map->buffer_count > map->buffer_cap - 1) {
+	if(map->buffer_count + 1 > map->buffer_cap) {
 		map->buffer_cap *= 2;
 
 		MapBuffer *buffers_ptr = (MapBuffer*)realloc(map->buffers, sizeof(MapBuffer) * map->buffer_cap);
 		map->buffers = buffers_ptr;
 	}
 
+	map->buffer_count++;
 	map->buffers[map->buffer_count - 1] = buffer;
+	printf("id = %d\n", map->buffer_count - 1);
+
+	buffer.ent_selected = -1;
 
 	fclose(pf);
 }
