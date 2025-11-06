@@ -148,7 +148,7 @@ void UiInit(Ui *ui, Config *conf, Camera2D *cam, SpriteLoader *sl, Map *map) {
 	UiPanelsInit(ui);
 	UiDropdownsInit(ui);
 	UiFileDiagInit(ui);
-	UiSlidersInit(ui);
+	//UiSlidersInit(ui);
 	UiObjectListInit(ui);
 	UiTabsInit(ui);
 }
@@ -564,6 +564,7 @@ void UiFileDiagInit(Ui *ui) {
 	file_diag_state.windowBounds = file_diag_rect;
 }
 
+/*
 void UiSlidersInit(Ui *ui) {
 	ui->sliders[0] = (Slider) {
 		.flags = 0,
@@ -614,6 +615,7 @@ void UiSlidersInit(Ui *ui) {
 		.height = 32
 	};
 }
+*/
 
 // Initalize object list data 
 // NOTE:

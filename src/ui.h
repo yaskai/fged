@@ -76,12 +76,10 @@ typedef struct {
 	Rectangle tab_home_rec;
 	Rectangle tab_new_rec;
 
-	Slider sliders[2];
+	//Slider sliders[2];
 	ObjectEntry object_entries[4];
 
 	Font font;
-
-	Entity prototypes[4];
 
 	char path_import[512];
 	char path_export[512];

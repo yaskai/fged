@@ -370,6 +370,7 @@ void MapReadBuffer(Map *map, char *path) {
 	}
 
 	buffer.ent_count = curr_id;
+	buffer.clipboard = (Entity*)malloc(sizeof(Entity) * buffer.ent_count);
 
 	if(map->buffer_count + 1 > map->buffer_cap) {
 		map->buffer_cap *= 2;
@@ -380,7 +381,6 @@ void MapReadBuffer(Map *map, char *path) {
 
 	map->buffer_count++;
 	map->buffers[map->buffer_count - 1] = buffer;
-	printf("id = %d\n", map->buffer_count - 1);
 
 	buffer.ent_selected = -1;
 
@@ -622,4 +622,4 @@ void Paste(MapBuffer *buffer, Vector2 pos) {
 
 	ActionApply(&paste_action, buffer);
 }
-
+ 
