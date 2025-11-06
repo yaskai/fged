@@ -1,0 +1,8 @@
+select	- left click
+add		- shift + A
+move	- M -> mouse move 
+rotate  - A -> mouse wheel
+scale	- S -> mouse wheel
+undo 	- Z
+redo 	- R
+pan 	- left click + ctrl
