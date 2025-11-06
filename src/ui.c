@@ -585,6 +585,7 @@ void UiFileDiagInit(Ui *ui) {
 	file_diag_state = InitGuiWindowFileDialog(GetWorkingDirectory());
 	file_diag_rect = (Rectangle){ ui->ww * 0.5f - 600, ui->wh * 0.5f - 400, 1200, 800 };
 	file_diag_state.windowBounds = file_diag_rect;
+	strcpy(file_diag_state.filterExt, ".lvl");
 }
 
 /*
