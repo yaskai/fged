@@ -380,7 +380,7 @@ void UiObjectList(Ui *ui) {
 
 // File tabs
 void UiTabs(Ui *ui) {
-	if(GuiButton(ui->tab_home_rec, TextFormat("#%d#", ICON_FILETYPE_HOME))) {
+	if(GuiButton(ui->tab_home_rec, TextFormat("#%d#", ICON_FILETYPE_HOME)) && ui->active_dropdown < 0) {
 		ui->map->active_buffer = -1;
 	}
 
@@ -388,9 +388,9 @@ void UiTabs(Ui *ui) {
 
 	for(uint8_t i = 0; i < ui->map->buffer_count; i++) {
 		Rectangle rec = (Rectangle) {
-			.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (i * 100),
+			.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (i * 200),
 			.y = ui->tab_home_rec.y,
-			.width = 100,
+			.width = 200,
 			.height = ui->tab_home_rec.height
 		};
 
@@ -402,10 +402,10 @@ void UiTabs(Ui *ui) {
 		};
 
 		//if(GuiButton(rec, TextFormat("%d. %s", i + 1, ui->map->buffers[i].name))) {
-		if(GuiButton(rec, TextFormat("%s", ui->map->buffers[i].name))) {
+		if(GuiButton(rec, TextFormat("%s", ui->map->buffers[i].name)) && ui->active_dropdown < 0) {
 			ui->map->active_buffer = i;
 
-			if(CheckCollisionPointRec(GetMousePosition(), close_rec)) {
+			if(CheckCollisionPointRec(GetMousePosition(), close_rec) && ui->active_dropdown < 0) {
 				MapRemoveBuffer(ui->map, i);
 				break;
 			}
@@ -417,13 +417,13 @@ void UiTabs(Ui *ui) {
 	GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 
 	Rectangle new_rec = (Rectangle) {
-		.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (100 * ui->map->buffer_count), 
+		.x = ui->tab_home_rec.x + ui->tab_home_rec.width + (200 * ui->map->buffer_count), 
 		.y = ui->tab_home_rec.y,
 		.width = 32,
 		.height = 32
 	};
 
-	if(GuiButton(new_rec, TextFormat("#%d#", ICON_FILE_ADD))) {
+	if(GuiButton(new_rec, TextFormat("#%d#", ICON_FILE_ADD)) && ui->active_dropdown < 0) {
 		fn_new(ui);
 	}
 }

@@ -7,7 +7,7 @@ rare_props: 0
 size_props: 0
 rotation: 0.000000
 scale: 3.000000
-position: 796.000122, 666.317505
+position: 371.727844, 657.342529
 frame: 0
 spritesheet: 0
 
@@ -31,7 +31,7 @@ rare_props: 0
 size_props: 0
 rotation: 0.000000
 scale: 1.000000
-position: 611.000000, 327.000000
+position: 1093.266357, 1204.457764
 frame: 0
 spritesheet: 0
 
@@ -43,7 +43,7 @@ rare_props: 0
 size_props: 0
 rotation: 0.000000
 scale: 1.000000
-position: 993.000000, 423.000000
+position: 1485.915771, 546.454346
 frame: 0
 spritesheet: 0
 

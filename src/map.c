@@ -379,8 +379,12 @@ void MapReadBuffer(Map *map, char *path) {
 		map->buffers = buffers_ptr;
 	}
 
+	char *slash = strrchr(path, '/');
+	strcpy(buffer.name, slash + 1);
+
 	map->buffer_count++;
 	map->buffers[map->buffer_count - 1] = buffer;
+	map->active_buffer = map->buffer_count - 1;
 
 	buffer.ent_selected = -1;
 
