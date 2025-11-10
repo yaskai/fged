@@ -53,6 +53,7 @@ void SliderUpdate(Slider *slider);
 typedef struct {
 	uint8_t flags;
 	int8_t active_dropdown;
+	int8_t selected_obj;
 
 	unsigned int ww, wh;
 

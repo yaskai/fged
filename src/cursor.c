@@ -52,7 +52,7 @@ void CursorCameraControls(Cursor *cursor, Camera2D *cam, float dt) {
 	if(cursor->flags & CURSOR_LOCK_ZOOM) scroll = 0;
 	if(fabs(scroll) > 0) {
 		cam->zoom += scroll * 0.25f;
-		cam->zoom = Clamp(cam->zoom, 0.4f, 2.0f);
+		cam->zoom = Clamp(cam->zoom, 0.1f, 2.0f);
 
 		Vector2 next = GetScreenToWorld2D(cursor->screen_pos, *cam);
 

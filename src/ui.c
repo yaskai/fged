@@ -239,9 +239,6 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 		cursor->flags |= CURSOR_ON_UI;
 	}
 
-	// Object list
-	UiObjectList(ui);
-
 	if(ui->map->active_buffer > -1) {
 		MapBuffer *buffer = &ui->map->buffers[ui->map->active_buffer];
 		
@@ -252,6 +249,9 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 				EntEditProperties(ui);
 		}
 	}
+	
+	// Object list
+	UiObjectList(ui);
 
 	if(ui->flags & UI_BUFNAME_DIAG) {
 		Rectangle rec = (Rectangle){ ui->ww * 0.5f - 250, ui->wh * 0.5f - 150, 500, 300 };
@@ -328,8 +328,8 @@ void UiObjectList(Ui *ui) {
 	Color clr_default = GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_NORMAL));
 	//Color clr_hovered = GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_FOCUSED));
 	//Color clr_pressed = GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED));
-	Color clr_hovered = GOLD;
-	Color clr_pressed = SKYBLUE;
+	Color clr_hovered = SKYBLUE;
+	Color clr_pressed = RAYWHITE;
 	
 	for(uint16_t i = 0; i < entry_count; i++) {
 		// Clear object list entry flags
@@ -342,13 +342,15 @@ void UiObjectList(Ui *ui) {
 
 		Rectangle rec = (Rectangle){ ui->panel_recs[PANEL_LFT].x + 10, rec_pos, OBJ_ENTRY_W, OBJ_ENTRY_H }; 
 		Rectangle text_rec = (Rectangle){ rec.x, text_pos, OBJ_ENTRY_W, 16 };
+
+		if(ui->selected_obj == i) color = GOLD;
 		
 		// Check for hover and press
 		Vector2 mouse_pos = GetMousePosition();
 		if(CheckCollisionPointRec(mouse_pos, rec) || CheckCollisionPointRec(mouse_pos, text_rec)) {
 			color = clr_hovered;
 			ui->object_entries[i].flags |= OBJ_ENTRY_HOVERED;
-				
+
 			if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 				color = clr_pressed;
 				ui->object_entries[i].flags |= OBJ_ENTRY_PRESSED;
@@ -360,6 +362,8 @@ void UiObjectList(Ui *ui) {
 					.scale = 1,
 					.spritesheet = ui->object_entries[i].spritesheet,
 				};
+
+				ui->selected_obj = i;
 			}
 		}
 		
