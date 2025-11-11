@@ -401,11 +401,11 @@ void MapReadBufferBin(Map *map, char *path) {
 
 // Draw a grid of lines
 void MapDrawGrid(Map *map) {
-	for(uint16_t i = 0; i < (16 * 16); i++) {
-		uint16_t c = i % 16;
-		uint16_t r = i / 16;
+	for(uint16_t i = 0; i < (64 * 64); i++) {
+		uint16_t c = i % 64;
+		uint16_t r = i / 64;
 
-		float tile_size = 256;
+		float tile_size = 512;
 		DrawRectangleLines(c * tile_size, r * tile_size, tile_size, tile_size, GRAY);
 	}
 }
