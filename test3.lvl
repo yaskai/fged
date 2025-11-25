@@ -1,0 +1,121 @@
+entity_count:10
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 234.000000
+scale: 1.000000
+position: 691.755981, 1544.063843
+frame: 0
+spritesheet: 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 70.000000
+scale: 4.000000
+position: 1760.327393, 1349.778076
+frame: 0
+spritesheet: 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 228.000000
+scale: 1.000000
+position: 891.755981, 595.492432
+frame: 0
+spritesheet: 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 140.000000
+scale: 3.000000
+position: 1880.327393, 338.349640
+frame: 0
+spritesheet: 0
+
+
+[asteroid]
+flags: 1
+type: 0
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+scale: 3.000000
+position: 351.755981, 946.921021
+frame: 0
+spritesheet: 0
+
+
+[player]
+flags: 1
+type: 1
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+scale: 1.000000
+position: 918.221985, 1013.896484
+frame: 0
+spritesheet: 1
+
+
+[spawner_fish]
+flags: 1
+type: 2
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+scale: 1.000000
+position: 1584.420410, 1031.598633
+frame: 0
+spritesheet: 2
+
+
+[spawner_fish]
+flags: 1
+type: 2
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+scale: 1.000000
+position: 432.753906, 696.598572
+frame: 0
+spritesheet: 2
+
+
+[spawner_fish]
+flags: 1
+type: 2
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+scale: 1.000000
+position: 711.087158, 1434.931885
+frame: 0
+spritesheet: 2
+
+
+[spawner_fish]
+flags: 1
+type: 2
+rare_props: 0
+size_props: 0
+rotation: 0.000000
+scale: 1.000000
+position: 1566.087158, 474.931885
+frame: 0
+spritesheet: 2
+

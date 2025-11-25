@@ -31,8 +31,8 @@ void MapUpdate(Map *map) {
 		if(!(ent->flags & ENT_ACTIVE)) continue;
 
 		Vector2 diff = (Vector2) {
-			(ent->spritesheet->frame_w * ent->scale - ent->spritesheet->frame_w) / 2, 
-			(ent->spritesheet->frame_h * ent->scale - ent->spritesheet->frame_h) / 2, 
+			(ent->spritesheet->frame_w * ent->scale - ent->spritesheet->frame_w) * 0.5f, 
+			(ent->spritesheet->frame_h * ent->scale - ent->spritesheet->frame_h) * 0.5f, 
 		};
 		
 		Rectangle rec = (Rectangle) {
@@ -401,11 +401,11 @@ void MapReadBufferBin(Map *map, char *path) {
 
 // Draw a grid of lines
 void MapDrawGrid(Map *map) {
-	for(uint16_t i = 0; i < (64 * 64); i++) {
-		uint16_t c = i % 64;
-		uint16_t r = i / 64;
+	for(uint16_t i = 0; i < (128 * 128); i++) {
+		uint16_t c = i % 128;
+		uint16_t r = i / 128;
 
-		float tile_size = 512;
+		float tile_size = 1024;
 		DrawRectangleLines(c * tile_size, r * tile_size, tile_size, tile_size, GRAY);
 	}
 }

@@ -61,7 +61,7 @@ void CursorCameraControls(Cursor *cursor, Camera2D *cam, float dt) {
 	}
 
 	// Pan camera
-	if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
+	if(IsMouseButtonDown(MOUSE_BUTTON_LEFT) && (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))) {
 		if(!(cursor->flags & CURSOR_PAN)) cursor->pan_pos = cursor->world_pos;
 		cursor->flags |= CURSOR_PAN;
 
