@@ -260,6 +260,25 @@ void UiUpdate(Ui *ui, Cursor *cursor, float dt) {
 		GuiTextBox(rec, buffer->name, 255, 1);
 		if(IsKeyPressed(KEY_ENTER)) {
 			ui->flags &= ~UI_BUFNAME_DIAG;
+
+			char *dot = strchr(buffer->name, '.');
+
+			if(dot) { 
+				char new_name[128];
+
+				*dot = '\0';
+				char *name = buffer->name;
+				char *ext = dot + 1;
+
+				if(strcmp(ext, "lvl")) {
+					strcpy(new_name, name);
+					strcat(new_name, ".lvl");
+				}
+
+				strcpy(buffer->name, new_name);
+			} else 
+				strcat(buffer->name, ".lvl");
+
 			fn_save(ui);
 		}
 	}

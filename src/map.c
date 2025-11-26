@@ -246,6 +246,10 @@ void MapRemoveBuffer(Map *map, short id) {
 // Save map to file
 void MapWriteBuffer(Map *map, char *path) {
 	char write_path[128];
+	strcpy(write_path, path);	
+
+	/*
+	char write_path[128];
 
 	char *dot = strrchr(path, '.');
 
@@ -263,6 +267,7 @@ void MapWriteBuffer(Map *map, char *path) {
 		strcat(path, ".lvl");
 		strcpy(write_path, path);
 	}
+	*/
 
 	FILE *pf = fopen(write_path, "w"); 
 	if(!pf) {
