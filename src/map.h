@@ -46,6 +46,9 @@ typedef struct {
 	Entity *clipboard;
 
 	char name[128];
+	
+	uint16_t select_count;
+	uint16_t *selected;
 } MapBuffer;
 
 typedef struct {

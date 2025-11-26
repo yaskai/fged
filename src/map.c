@@ -245,7 +245,26 @@ void MapRemoveBuffer(Map *map, short id) {
 
 // Save map to file
 void MapWriteBuffer(Map *map, char *path) {
-	FILE *pf = fopen(path, "w"); 
+	char write_path[128];
+
+	char *dot = strrchr(path, '.');
+
+	if(dot) {
+		*dot = '\0';
+		char *name = path;
+		char *ext  = dot + 1;
+
+		//printf("name: %s\n", path);
+		//printf("ext: %s\n", ext);
+
+		strcat(name, ".lvl");
+		strcpy(write_path, name);
+	} else {
+		strcat(path, ".lvl");
+		strcpy(write_path, path);
+	}
+
+	FILE *pf = fopen(write_path, "w"); 
 	if(!pf) {
 		printf("ERROR: could not write to file path.\n");
 		return;
@@ -262,21 +281,10 @@ void MapWriteBuffer(Map *map, char *path) {
 
 		char *type_str = "";
 		switch(ent->type) {
-			case ASTEROID:
-				type_str = "asteroid";
-				break;
-
-			case PLAYER:
-				type_str = "player";
-				break;
-
-			case SPAWNER_FISH:
-				type_str = "spawner_fish";
-				break;
-
-			case SPAWNER_ITEM:
-				type_str = "spawner_item";
-				break;
+			case ASTEROID:		type_str = "asteroid";		break;
+			case PLAYER:		type_str = "player";		break;
+			case SPAWNER_FISH:	type_str = "spawner_fish";	break;
+			case SPAWNER_ITEM: 	type_str = "spawner_item";	break;
 		}
 		
 		fprintf(pf, "\n");

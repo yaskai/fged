@@ -31,7 +31,7 @@ void fn_save(Ui *ui) {
 		ui->flags |= UI_BUFNAME_DIAG;
 	else {
 		char path[128];
-		strcpy(path, "./");
+		//strcpy(path, "./");
 		strcat(path, buffer->name);
 
 		MapWriteBuffer(ui->map, path);
