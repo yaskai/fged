@@ -55,15 +55,16 @@ void MapUpdate(Map *map) {
 	if(buffer->ent_selected > -1 && buffer->entities[buffer->ent_selected].flags & ENT_ACTIVE) {
 		Entity *ent = &buffer->entities[buffer->ent_selected];
 		
-		if(IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_BACKSPACE))
+		if(IsKeyPressed(KEY_DELETE) || IsKeyPressed(KEY_BACKSPACE)) {
 			BufRemoveEntity(buffer, &buffer->entities[buffer->ent_selected]);
+		}
 
-		if(IsKeyPressed(KEY_M))
+		if(IsKeyPressed(KEY_M)) {
 			ent->flags ^= ENT_MOVING;
+		}
 
 		if(IsKeyPressed(KEY_S)) {
 			ent->flags ^= ENT_SCALING;
-			//map->cursor->flags ^= CURSOR_LOCK_ZOOM;
 
 			if(!(ent->flags & ENT_SCALING)) {
 				BufScaleEntity(buffer, ent, temp_scale);
@@ -122,8 +123,9 @@ void MapUpdate(Map *map) {
 		Paste(buffer, map->cursor->world_pos);
 
 	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) {
-		if(buffer->ent_selected > -1)
-			buffer->entities[buffer->ent_selected].flags &= ~ENT_SCALING;
+		if(buffer->ent_selected > -1) {
+			buffer->entities[buffer->ent_selected].flags = (ENT_ACTIVE);			
+		}
 
 		buffer->ent_selected = buffer->ent_hovered;
 		
@@ -247,27 +249,6 @@ void MapRemoveBuffer(Map *map, short id) {
 void MapWriteBuffer(Map *map, char *path) {
 	char write_path[128];
 	strcpy(write_path, path);	
-
-	/*
-	char write_path[128];
-
-	char *dot = strrchr(path, '.');
-
-	if(dot) {
-		*dot = '\0';
-		char *name = path;
-		char *ext  = dot + 1;
-
-		//printf("name: %s\n", path);
-		//printf("ext: %s\n", ext);
-
-		strcat(name, ".lvl");
-		strcpy(write_path, name);
-	} else {
-		strcat(path, ".lvl");
-		strcpy(write_path, path);
-	}
-	*/
 
 	FILE *pf = fopen(write_path, "w"); 
 	if(!pf) {

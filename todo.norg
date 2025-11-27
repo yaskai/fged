@@ -1,0 +1,11 @@
+#TODO
+
+* (x) Bugs:
+** (x) entities become invisible when unselecting during modifications
+** (x) .lvl file extension not added by default
+
+* (-) Features:
+** (x) Save As button
+** (-) Cancel modify operations when switching between them  
+** (-) Multiple selection + modification
+

@@ -38,6 +38,15 @@ void fn_save(Ui *ui) {
 	}
 }
 
+void fn_save_as(Ui *ui) {
+	MapBuffer *buffer = &ui->map->buffers[ui->map->active_buffer];
+	char new_name[128] = "";
+
+	ui->flags |= UI_BUFNAME_DIAG;
+
+	fn_save(ui);
+}
+
 void fn_open(Ui *ui) { ui->flags |= UI_FILE_DIAG;   }
 void fn_quit(Ui *ui) { ui->flags ^= UI_QUIT_PROMPT; }
 
@@ -574,7 +583,7 @@ void UiDropdownsInit(Ui *ui) {
 
 	// Set string values
 	char *text[DROP_COLS][DROP_ROWS] = {
-		{ "File", "#008#New", "#001#Open", "#002#Save", "#159#Quit", "", "", "" },
+		{ "File", "#008#New", "#001#Open", "#002#Save", "Save As", "#159#Quit", "", "" },
 		{ "Edit", "#056#Undo", "#057#Redo", "", "", "", "", "" 	   },
 		{ "Help", "", "", "", "", "", "", ""			   }
 	};
@@ -584,7 +593,7 @@ void UiDropdownsInit(Ui *ui) {
 	// row count reduced by one to account for them
 	DropdownEventFn events[DROP_COLS][DROP_ROWS-1] = {
 		// "file":
-		{ fn_new, fn_open, fn_save, fn_quit },
+		{ fn_new, fn_open, fn_save, fn_save_as, fn_quit },
 
 		// "edit":
 		{ fn_undo, fn_redo },
