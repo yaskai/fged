@@ -48,10 +48,20 @@ void MapUpdate(Map *map) {
 
 	// Add a new entity 
 	if(IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A) && !(map->cursor->flags & CURSOR_ON_UI)) {
-		if(buffer->ent_prototype.spritesheet != NULL) 
-			BufAddEntity(buffer->ent_prototype.type, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
+		if(buffer->ent_prototype.spritesheet != NULL) { 
+			//BufAddEntity(buffer->ent_prototype.type, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
+
+			Entity ent = buffer->ent_prototype;
+
+			// Apply random rotation when placing asteroids
+			float rot = 0;
+			if(ent.type == ASTEROID) rot = GetRandomValue(0, 360);	
+			
+			BufAddEntity(ent.type, rot, map->cursor->world_pos, ent.spritesheet, buffer);
+		}
 	}
 
+	// Modify actions
 	if(buffer->ent_selected > -1 && buffer->entities[buffer->ent_selected].flags & ENT_ACTIVE) {
 		Entity *ent = &buffer->entities[buffer->ent_selected];
 		
