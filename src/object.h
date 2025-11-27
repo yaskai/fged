@@ -50,10 +50,17 @@ typedef struct {
 #define allow_size_large	0x08	
 #define allow_size_bmoth	0x10	
 
+enum MODIFICATIONS {
+	MOD_MOVE,
+	MOD_SCALE,
+	MOD_SPIN
+};
+
 typedef struct {
 	uint8_t flags;
 	uint8_t type;
 	uint8_t frame_id;	
+	uint8_t mod_state;
 
 	uint8_t rare_props;
 	uint8_t size_props; 

@@ -61,10 +61,16 @@ void MapUpdate(Map *map) {
 
 		if(IsKeyPressed(KEY_M)) {
 			ent->flags ^= ENT_MOVING;
+
+			if(ent->flags | ENT_MOVING)
+				ent->flags = (ENT_ACTIVE | ENT_MOVING);
 		}
 
 		if(IsKeyPressed(KEY_S)) {
 			ent->flags ^= ENT_SCALING;
+
+			if(ent->flags & ENT_SCALING)
+				ent->flags = (ENT_ACTIVE | ENT_SCALING);
 
 			if(!(ent->flags & ENT_SCALING)) {
 				BufScaleEntity(buffer, ent, temp_scale);
@@ -85,6 +91,9 @@ void MapUpdate(Map *map) {
 
 		if(IsKeyPressed(KEY_A)) {
 			ent->flags ^= ENT_SPINNING;
+
+			if(ent->flags & ENT_SPINNING) 
+				ent->flags = (ENT_ACTIVE | ENT_SPINNING);
 
 			if(!(ent->flags & ENT_SPINNING)) {
 				Entity ent_modifed = *ent;
@@ -193,6 +202,9 @@ void MapBufferInit(MapBuffer *buffer) {
 
 	buffer->ent_count = 0;
 	buffer->curr_action = 0;
+
+	buffer->select_count = 0;
+	buffer->selected = malloc(sizeof(uint16_t) * BUF_ENT_CAP_INIT);
 }
 
 void MapAddBuffer(Map *map) {

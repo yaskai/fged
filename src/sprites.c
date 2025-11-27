@@ -123,7 +123,8 @@ void LoadSpriteheet(SpriteLoader *sl, char *path, Vector2 frame_dimensions) {
 }
 
 void LoadAllSprites(SpriteLoader *sl) {
-	LoadSpriteheet(sl, "resources/sprites/asteroid00.png", (Vector2){128, 128});
+	//LoadSpriteheet(sl, "resources/sprites/asteroid00.png", (Vector2){128, 128});
+	LoadSpriteheet(sl, "resources/sprites/asteroid01.png", (Vector2){256, 256});
 	LoadSpriteheet(sl, "resources/sprites/player_sheet.png", (Vector2){64, 64});
 	LoadSpriteheet(sl, "resources/sprites/fish01.png", (Vector2){128, 128});
 	LoadSpriteheet(sl, "resources/sprites/dot.png", (Vector2){16, 16});

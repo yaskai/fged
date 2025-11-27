@@ -13,7 +13,8 @@ typedef struct {
 	uint8_t frame_count;		// Number of frames
 	uint8_t cols, rows;			// Number of columns and rows
 
-	uint8_t frame_w, frame_h;	// Width and height of frames
+	uint16_t frame_w;			// Frame width
+	uint16_t frame_h;			// Frame height
 
 	Texture2D texture;			// Source image
 } Spritesheet;
