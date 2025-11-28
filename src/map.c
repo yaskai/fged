@@ -12,6 +12,9 @@
 float temp_scale = 1.0f;
 float temp_spin  = 0.0f;
 
+bool selection_set = false;
+bool show_cb = false;
+
 void MapInit(Map *map, Camera2D *cam, Cursor *cursor, SpriteLoader *sl) {
 	map->cam = cam;
 	map->cursor = cursor;
@@ -49,8 +52,6 @@ void MapUpdate(Map *map) {
 	// Add a new entity 
 	if(IsKeyDown(KEY_LEFT_SHIFT) && IsKeyPressed(KEY_A) && !(map->cursor->flags & CURSOR_ON_UI)) {
 		if(buffer->ent_prototype.spritesheet != NULL) { 
-			//BufAddEntity(buffer->ent_prototype.type, 0, map->cursor->world_pos, buffer->ent_prototype.spritesheet, buffer);
-
 			Entity ent = buffer->ent_prototype;
 
 			// Apply random rotation when placing asteroids
@@ -69,7 +70,7 @@ void MapUpdate(Map *map) {
 			BufRemoveEntity(buffer, &buffer->entities[buffer->ent_selected]);
 		}
 
-		if(IsKeyPressed(KEY_M)) {
+		if(IsKeyPressed(KEY_T)) {
 			ent->flags ^= ENT_MOVING;
 
 			if(ent->flags | ENT_MOVING)
@@ -134,27 +135,90 @@ void MapUpdate(Map *map) {
 	if(IsKeyPressed(KEY_R)) ActionRedo(buffer);
 
 	if(map->cursor->flags & CURSOR_BOX_OPEN) {
+		// Check if entities should be selected
+		if(buffer->select_count == 0) {
+			for(uint16_t i = 0; i < buffer->ent_count; i++) {
+				Entity *ent = &buffer->entities[i];
+				if(!(ent->flags & ENT_ACTIVE)) continue;
+
+				Rectangle ent_rec = (Rectangle) {
+					.x = ent->position.x,
+					.y = ent->position.y,
+					.width = ent->spritesheet->frame_w * ent->scale,
+					.height = ent->spritesheet->frame_h * ent->scale
+				};	
+				
+				if(CheckCollisionRecs(map->cursor->selection_rec_final, ent_rec)) 
+					buffer->selected[buffer->select_count++] = ent->id;
+			}
+
+			buffer->ent_selected = -1;
+		}
+
 		if(IsKeyPressed(KEY_C))
 			Copy(buffer, map->cursor->selection_rec_final);
+		
+	} else {
+		for(uint16_t i = 0; i < buffer->select_count; i++) {
+			Entity *ent = &buffer->entities[buffer->selected[i]];
+			ent->flags = (ENT_ACTIVE);
+		}
+
+		buffer->select_count = 0;
 	}
 
-	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) 
-		Paste(buffer, map->cursor->world_pos);
+	if(IsKeyReleased(KEY_X))
+		BufRemoveMultiple(buffer);
+
+	if(IsKeyPressed(KEY_T)) {
+		for(uint16_t i = 0; i < buffer->select_count; i++) {
+			Entity *ent = &buffer->entities[buffer->selected[i]];
+			ent->flags ^= ENT_MOVING;
+
+			if(ent->flags & ENT_MOVING)
+				ent->flags = (ENT_ACTIVE | ENT_MOVING);
+		}
+	}
+
+	bool move_group = (buffer->select_count > 0 && (buffer->entities[buffer->selected[0]].flags & ENT_MOVING));
+	if(move_group) {
+		if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			BufTranslateMultiple(buffer, map->cursor->world_pos, map->cursor->selection_rec_final);
+		}
+	}
+
+	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) {
+		//Paste(buffer, map->cursor->world_pos);
+		
+		show_cb = true;
+	}
+
+	if(show_cb) {
+		if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			Paste(buffer, map->cursor->world_pos);
+			show_cb = false;
+		}
+	}
 
 	if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !(map->cursor->flags & CURSOR_ON_UI)) {
 		if(buffer->ent_selected > -1) {
-			buffer->entities[buffer->ent_selected].flags = (ENT_ACTIVE);			
+			buffer->entities[buffer->ent_selected].flags = (ENT_ACTIVE);
 		}
 
 		buffer->ent_selected = buffer->ent_hovered;
 		
 		temp_scale = buffer->entities[buffer->ent_selected].scale;
+
+		map->cursor->flags &= ~CURSOR_BOX_OPEN;
+		map->cursor->selection_rec_final = (Rectangle){0};
 	}
 }
 
 void MapDraw(Map *map) {
 	// Draw grid background
 	MapDrawGrid(map);
+
+	Cursor *cursor = map->cursor;
 
 	if(map->active_buffer < 0) return;
 	MapBuffer *buffer = &map->buffers[map->active_buffer];
@@ -164,10 +228,14 @@ void MapDraw(Map *map) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;	
 
+		/*
 		if( (ent->flags & ENT_MOVING) 	||
 			(ent->flags & ENT_SCALING)  ||
 			(ent->flags & ENT_SPINNING)
 		) continue;
+		*/
+
+		if(ent->flags & (ENT_MOVING | ENT_SCALING | ENT_SPINNING)) continue;
 
 		DrawSpritePro(ent->spritesheet, ent->frame_id, ent->position, ent->rotation, ent->scale, WHITE, 0);
 	}
@@ -194,6 +262,61 @@ void MapDraw(Map *map) {
 		float rotation = (ent->flags & ENT_SPINNING) ? temp_spin : ent->rotation;
 
 		DrawSpritePro(ent->spritesheet, ent->frame_id, (Vector2){rec.x, rec.y}, rotation, scale, color, 0);
+	}
+
+	for(uint16_t i = 0; i < buffer->select_count; i++) {
+		Entity *ent = &buffer->entities[buffer->selected[i]];
+		if(!(ent->flags & ENT_ACTIVE)) continue;
+		
+		Rectangle rec = (Rectangle) {
+			.x = ent->position.x,
+			.y = ent->position.y,
+			.width = ent->spritesheet->frame_w,
+			.height = ent->spritesheet->frame_h
+		};
+		
+		Color color = ColorAlpha(ORANGE, 0.8f);
+		if(ent->flags & ENT_MOVING) {
+			Vector2 offset = (Vector2) {
+				ent->position.x - (cursor->selection_rec_final.x + cursor->selection_rec_final.width * 0.5f),
+				ent->position.y - (cursor->selection_rec_final.y + cursor->selection_rec_final.height * 0.5f),
+			};
+
+			rec.x = cursor->world_pos.x + offset.x;
+			rec.y = cursor->world_pos.y + offset.y;
+
+			color = WHITE;
+		}
+		
+		float scale = (ent->flags & ENT_SCALING) ? temp_scale : ent->scale;
+		float rotation = (ent->flags & ENT_SPINNING) ? temp_spin : ent->rotation;
+
+		DrawSpritePro(ent->spritesheet, ent->frame_id, (Vector2){rec.x, rec.y}, rotation, scale, color, 0);
+
+		//DrawCircleV(ent->position, 16, SKYBLUE);
+	}
+
+	if(!show_cb) return;
+
+	for(uint16_t i = 0; i < buffer->cb_count; i++) {
+		Entity *ent = &buffer->clipboard[i];
+
+		Rectangle rec = (Rectangle) {
+			.x = ent->position.x,
+			.y = ent->position.y,
+			.width = ent->spritesheet->frame_w,
+			.height = ent->spritesheet->frame_h
+		};
+		
+		Vector2 offset = (Vector2) {
+			ent->position.x - (buffer->cb_rec.x + buffer->cb_rec.width * 0.5f),
+			ent->position.y - (buffer->cb_rec.y + buffer->cb_rec.height * 0.5f),
+		};
+
+		rec.x = cursor->world_pos.x + offset.x;
+		rec.y = cursor->world_pos.y + offset.y;
+
+		DrawSpritePro(ent->spritesheet, ent->frame_id, (Vector2){rec.x, rec.y}, ent->rotation, ent->scale, WHITE, 0);
 	}
 }
 
@@ -234,6 +357,8 @@ void MapAddBuffer(Map *map) {
 
 	MapBuffer new_buffer = (MapBuffer){0};
 
+	new_buffer.selected = (uint16_t*)malloc(sizeof(uint16_t) * BUF_ENT_CAP_INIT);	
+
 	new_buffer.action_cap = BUF_ACTION_CAP_INIT;
 	new_buffer.actions = actions;
 
@@ -258,6 +383,7 @@ void MapRemoveBuffer(Map *map, short id) {
 
 	free(buffer->actions);
 	free(buffer->entities);
+	free(buffer->selected);
 
 	for(short i = id; i < map->buffer_count - 1; i++) {
 		map->buffers[i] = map->buffers[i + 1];
@@ -497,7 +623,7 @@ void ActionUndo(MapBuffer *buffer) {
 		buffer->entities[id] = action->ents_prev[i];
 	}
 
-	// Decrement index in history  
+	// Decrement index in action history  
 	buffer->curr_action--;
 }
 
@@ -506,7 +632,7 @@ void ActionRedo(MapBuffer *buffer) {
 	// Prevent redoing passed last index
 	if(buffer->curr_action > buffer->action_count - 1) return;
 	
-	// Increment index in history  
+	// Increment index in action history  
 	buffer->curr_action++;
 
 	BufferAction *action = &buffer->actions[buffer->curr_action];
@@ -643,3 +769,71 @@ void Paste(MapBuffer *buffer, Vector2 pos) {
 	ActionApply(&paste_action, buffer);
 }
  
+void BufRemoveMultiple(MapBuffer *buffer) {
+	if(buffer->select_count == 0) return;
+
+	// Copy entities to save previous state
+	Entity *ents_prev = malloc(sizeof(Entity) * buffer->select_count);
+
+	for(uint16_t i = 0; i < buffer->select_count; i++) 
+		ents_prev[i] = buffer->entities[buffer->selected[i]];
+
+	// Create empty entities for new state
+	Entity *ents_curr = malloc(sizeof(Entity) * buffer->select_count);
+
+	for(uint16_t i = 0; i < buffer->select_count; i++)
+		ents_curr[i] = (Entity){ .id = ents_prev[i].id };
+
+	// Create action, set values
+	BufferAction remove_action = (BufferAction) {
+		.type = ACTION_REMOVE,
+		.ent_count = buffer->select_count,
+		.ents_prev = ents_prev,
+		.ents_curr = ents_curr
+	};
+
+	// Apply action onto buffer
+	ActionApply(&remove_action, buffer);
+
+	// Reset selection count
+	buffer->select_count = 0;
+}
+
+void BufTranslateMultiple(MapBuffer *buffer, Vector2 pos, Rectangle box) {
+	if(buffer->select_count == 0) return;
+
+	Entity *ents_prev = malloc(sizeof(Entity) * buffer->select_count);
+		
+	for(uint16_t i = 0; i < buffer->select_count; i++) { 
+		ents_prev[i] = buffer->entities[buffer->selected[i]];
+		ents_prev[i].flags &= ~ENT_MOVING;
+	}
+	
+	Entity *ents_curr = malloc(sizeof(Entity) * buffer->select_count);	
+
+	for(uint16_t i = 0; i < buffer->select_count; i++) { 
+		Entity ent = ents_prev[i];
+
+		Vector2 offset = (Vector2) {
+			ent.position.x - (box.x + box.width * 0.5f),
+			ent.position.y - (box.y + box.height * 0.5f),
+		};
+		
+		ent.position = (Vector2) {
+			pos.x + offset.x,
+			pos.y + offset.y
+		};
+
+		ents_curr[i] = ent;
+	}
+
+	BufferAction move_action = (BufferAction) {
+		.type = ACTION_MODIFY,
+		.ent_count = buffer->select_count,
+		.ents_prev = ents_prev,
+		.ents_curr = ents_curr
+	};
+
+	ActionApply(&move_action, buffer);
+}
+

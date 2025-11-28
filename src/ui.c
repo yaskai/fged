@@ -750,6 +750,7 @@ void EntEditProperties(Ui *ui) {
 			.height = 32 
 		};
 
+		// Flip property if box is pressed
 		bool check = ent->rare_props & (1 << i);
 		if(GuiCheckBox(rec, text[i], &check)) { 
 			ent->rare_props ^= (1 << i);	
@@ -771,6 +772,7 @@ void EntEditProperties(Ui *ui) {
 			.height = 32
 		};
 
+		// Flip property if box is pressed
 		bool check = ent->size_props & (1 << i);
 		if(GuiCheckBox(rec, size_text[i], &check)) {
 			ent->size_props ^= (1 << i);

@@ -22,8 +22,9 @@ void CursorUpdate(Cursor *cursor, Camera2D *cam, float dt) {
 	CursorCameraControls(cursor, cam, dt);
 
 	// Update selection box
-	if(IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+	if(IsMouseButtonDown(MOUSE_RIGHT_BUTTON)) {
 		SelectionBox(cursor);
+	}
 
 	if(IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) {
 		cursor->selection_rec_final = cursor->selection_rec_edit;
@@ -67,7 +68,8 @@ void CursorCameraControls(Cursor *cursor, Camera2D *cam, float dt) {
 
 		Vector2 diff = Vector2Subtract(cursor->pan_pos, cursor->world_pos);
 		cam->target = Vector2Add(cam->target, diff);
-	} else cursor->flags &= ~CURSOR_PAN;
+	} else 
+		cursor->flags &= ~CURSOR_PAN;
 }
 
 // Draw cursor every frame
@@ -77,8 +79,8 @@ void CursorDraw(Cursor *cursor) {
 		DrawRectangleRec(cursor->selection_rec_edit, ColorAlpha(SKYBLUE, 0.75f));
 		DrawRectangleLinesEx(cursor->selection_rec_edit, 2, BLUE);
 	} else {
-		//DrawRectangleRec(cursor->selection_rec_final, ColorAlpha(SKYBLUE, 0.25f));
-		//DrawRectangleLinesEx(cursor->selection_rec_final, 2, GRAY);
+		DrawRectangleRec(cursor->selection_rec_final, ColorAlpha(SKYBLUE, 0.1f));
+		DrawRectangleLinesEx(cursor->selection_rec_final, 8, SKYBLUE);
 	}
 }
 
@@ -97,6 +99,7 @@ void SelectionBox(Cursor *cursor) {
 	// Check and update cursor flags, set box origin 
 	if(!(cursor->flags & CURSOR_SELECTION)) {
 		cursor->box_origin = cursor->world_pos;
+
 		cursor->flags |= CURSOR_SELECTION;
 		cursor->flags &= ~CURSOR_BOX_OPEN;
 		return;

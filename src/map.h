@@ -97,4 +97,7 @@ void BufModifyEntity(MapBuffer *buffer, Entity *original, Entity modified);
 void Copy(MapBuffer *buffer, Rectangle rec);
 void Paste(MapBuffer *buffer, Vector2 pos);
 
+void BufRemoveMultiple(MapBuffer *buffer);
+void BufTranslateMultiple(MapBuffer *buffer, Vector2 pos, Rectangle box);
+
 #endif
