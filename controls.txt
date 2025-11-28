@@ -1,8 +1,11 @@
-select	- left click
+select	- left click, right click for box
 add		- shift + A
-move	- M -> mouse move 
+move	- T -> mouse move 
 rotate  - A -> mouse wheel
 scale	- S -> mouse wheel
 undo 	- Z
 redo 	- R
-pan 	- left click + ctrl
+copy 	- C
+paste	- V -> mouse move -> left click
+pan 	- shift + left click
+

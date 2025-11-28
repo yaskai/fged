@@ -167,8 +167,18 @@ void MapUpdate(Map *map) {
 		buffer->select_count = 0;
 	}
 
+	/*
 	if(IsKeyReleased(KEY_X))
 		BufRemoveMultiple(buffer);
+	*/
+
+	if(IsKeyPressed(KEY_BACKSPACE) && buffer->select_count > 0) {
+		BufRemoveMultiple(buffer);
+
+		map->cursor->selection_rec_final = (Rectangle){0};
+		map->cursor->flags &= ~CURSOR_BOX_OPEN;
+		buffer->select_count = 0;
+	} 
 
 	if(IsKeyPressed(KEY_T)) {
 		for(uint16_t i = 0; i < buffer->select_count; i++) {
