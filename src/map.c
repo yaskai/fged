@@ -639,7 +639,7 @@ void ActionUndo(MapBuffer *buffer) {
 
 // Redo an action in buffer
 void ActionRedo(MapBuffer *buffer) {
-	// Prevent redoing passed last index
+	// Prevent redoing above last index
 	if(buffer->curr_action > buffer->action_count - 1) return;
 	
 	// Increment index in action history  
@@ -653,6 +653,7 @@ void ActionRedo(MapBuffer *buffer) {
 	}
 }
 
+// Place a new entity
 void BufAddEntity(uint8_t type, float rotation, Vector2 position, Spritesheet *ss, MapBuffer *buffer) {
 	Entity ent = (Entity){0};
 	ent.flags = (ENT_ACTIVE);
