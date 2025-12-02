@@ -28,3 +28,4 @@ void PrintIntroImg(char *path) {
 
 	fclose(pf);
 }
+

@@ -537,15 +537,6 @@ void UiStyleLoadFromName(Ui *ui, char *name) {
 // Set panel data (rectangles and text)
 void UiPanelsInit(Ui *ui) {
 	// Set box values 
-	/*
-	Rectangle recs[] = {
-		{0, 0, ui->ww, 100},						// top 
-		{0, ui->wh - 100, ui->ww, 100}, 			// bot
-		{0, 100, 100, ui->wh - 200}, 				// lft
-		{ui->ww - 100, 100, 100, ui->wh - 200}		// rgt
-	};
-	*/
-
 	float top_h  = 100;
 	float bot_h  = 200;
 

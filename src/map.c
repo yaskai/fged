@@ -167,11 +167,6 @@ void MapUpdate(Map *map) {
 		buffer->select_count = 0;
 	}
 
-	/*
-	if(IsKeyReleased(KEY_X))
-		BufRemoveMultiple(buffer);
-	*/
-
 	if(IsKeyPressed(KEY_BACKSPACE) && buffer->select_count > 0) {
 		BufRemoveMultiple(buffer);
 
@@ -197,11 +192,8 @@ void MapUpdate(Map *map) {
 		}
 	}
 
-	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) {
-		//Paste(buffer, map->cursor->world_pos);
-		
+	if(buffer->cb_count > 0 && IsKeyPressed(KEY_V)) 
 		show_cb = true;
-	}
 
 	if(show_cb) {
 		if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -237,14 +229,6 @@ void MapDraw(Map *map) {
 	for(uint16_t i = 0; i < buffer->ent_count; i++) {
 		Entity *ent = &buffer->entities[i];
 		if(!(ent->flags & ENT_ACTIVE)) continue;	
-
-		/*
-		if( (ent->flags & ENT_MOVING) 	||
-			(ent->flags & ENT_SCALING)  ||
-			(ent->flags & ENT_SPINNING)
-		) continue;
-		*/
-
 		if(ent->flags & (ENT_MOVING | ENT_SCALING | ENT_SPINNING)) continue;
 
 		DrawSpritePro(ent->spritesheet, ent->frame_id, ent->position, ent->rotation, ent->scale, WHITE, 0);
@@ -336,6 +320,7 @@ void MapClose(Map *map) {
 	for(uint8_t i = 0; i < map->buffer_count; i++) free(&map->buffers[i]);
 }
 
+// Initialize a file buffer
 void MapBufferInit(MapBuffer *buffer) {
 	buffer->ent_cap = BUF_ENT_CAP_INIT;
 	buffer->entities = malloc(sizeof(Entity) * buffer->ent_cap);
@@ -350,6 +335,7 @@ void MapBufferInit(MapBuffer *buffer) {
 	buffer->selected = malloc(sizeof(uint16_t) * BUF_ENT_CAP_INIT);
 }
 
+// Open a new file buffer
 void MapAddBuffer(Map *map) {
 	map->buffer_count++;
 
@@ -403,7 +389,7 @@ void MapRemoveBuffer(Map *map, short id) {
 	map->active_buffer = id - 1;
 }
 
-// Save map to file
+// Write map to .lvl file
 void MapWriteBuffer(Map *map, char *path) {
 	char write_path[128];
 	strcpy(write_path, path);	
@@ -448,7 +434,7 @@ void MapWriteBuffer(Map *map, char *path) {
 	fclose(pf);
 }
 
-// Read map from file
+// Read map from .lvl file
 void MapReadBuffer(Map *map, char *path) {
 	FILE *pf = 	fopen(path, "r");
 	if(!pf) {
@@ -591,6 +577,7 @@ void ActionApply(BufferAction *action, MapBuffer *buffer) {
 		buffer->action_count = buffer->curr_action;
 	}
 
+	// Add entitys and increment count if necesarry
 	uint16_t ents_added = (action->type == ACTION_INSERT) ? action->ent_count : 0;
 	for(uint16_t i = 0; i < ents_added; i++) {
 		uint16_t id = buffer->ent_count++;
@@ -625,6 +612,7 @@ void ActionUndo(MapBuffer *buffer) {
 	// Prevent undoing below first index
 	if(buffer->curr_action < 1) return;
 
+	// Get action pointer
 	BufferAction *action = &buffer->actions[buffer->curr_action];	
 
 	// Set entities in buffer action to their previous states
@@ -645,8 +633,10 @@ void ActionRedo(MapBuffer *buffer) {
 	// Increment index in action history  
 	buffer->curr_action++;
 
+	// Get action pointer
 	BufferAction *action = &buffer->actions[buffer->curr_action];
 	
+	// Set buffer state from action's "current" state
 	for(uint16_t i = 0; i < action->ent_count; i++) {
 		uint16_t id = action->ents_curr[i].id;
 		buffer->entities[id] = action->ents_curr[i];		
@@ -737,6 +727,7 @@ void BufModifyEntity(MapBuffer *buffer, Entity *original, Entity modified) {
 	ActionApply(&action, buffer);
 }
 
+// Copy selection to clipboard
 void Copy(MapBuffer *buffer, Rectangle rec) {
 	buffer->cb_count = 0;
 
@@ -760,6 +751,7 @@ void Copy(MapBuffer *buffer, Rectangle rec) {
 	}
 }
 
+// Paste from clipboard
 void Paste(MapBuffer *buffer, Vector2 pos) {
 	Entity *ents_prev = malloc(sizeof(Entity) * buffer->cb_count);
 	for(uint16_t i = 0; i < buffer->cb_count; i++) ents_prev[i] = (Entity){0};
@@ -767,7 +759,7 @@ void Paste(MapBuffer *buffer, Vector2 pos) {
 	Entity *ents_curr = malloc(sizeof(Entity) * buffer->cb_count);
 	for(uint16_t i = 0; i < buffer->cb_count; i++) {
 		ents_curr[i] = buffer->clipboard[i];
-		ents_curr[i].position = (Vector2){ents_curr[i].position.x + pos.x, ents_curr[i].position.y + pos.y};
+		ents_curr[i].position = (Vector2){ ents_curr[i].position.x + pos.x, ents_curr[i].position.y + pos.y };
 	}
 
 	BufferAction paste_action = (BufferAction) {
@@ -780,6 +772,7 @@ void Paste(MapBuffer *buffer, Vector2 pos) {
 	ActionApply(&paste_action, buffer);
 }
  
+// Cut selection
 void BufRemoveMultiple(MapBuffer *buffer) {
 	if(buffer->select_count == 0) return;
 
@@ -792,7 +785,7 @@ void BufRemoveMultiple(MapBuffer *buffer) {
 	// Create empty entities for new state
 	Entity *ents_curr = malloc(sizeof(Entity) * buffer->select_count);
 
-	for(uint16_t i = 0; i < buffer->select_count; i++)
+	for(uint16_t i = 0; i < buffer->select_count; i++) 
 		ents_curr[i] = (Entity){ .id = ents_prev[i].id };
 
 	// Create action, set values
@@ -810,34 +803,34 @@ void BufRemoveMultiple(MapBuffer *buffer) {
 	buffer->select_count = 0;
 }
 
+// Move selection
 void BufTranslateMultiple(MapBuffer *buffer, Vector2 pos, Rectangle box) {
+	// Skip if nothing selected
 	if(buffer->select_count == 0) return;
 
+	// Allocate memory for action previous state
 	Entity *ents_prev = malloc(sizeof(Entity) * buffer->select_count);
-		
+
+	// Copy selection to previous state in action
 	for(uint16_t i = 0; i < buffer->select_count; i++) { 
 		ents_prev[i] = buffer->entities[buffer->selected[i]];
 		ents_prev[i].flags &= ~ENT_MOVING;
 	}
 	
+	// Allocate memory for action current state
 	Entity *ents_curr = malloc(sizeof(Entity) * buffer->select_count);	
 
+	// Find and set new entity positions
 	for(uint16_t i = 0; i < buffer->select_count; i++) { 
 		Entity ent = ents_prev[i];
 
-		Vector2 offset = (Vector2) {
-			ent.position.x - (box.x + box.width * 0.5f),
-			ent.position.y - (box.y + box.height * 0.5f),
-		};
-		
-		ent.position = (Vector2) {
-			pos.x + offset.x,
-			pos.y + offset.y
-		};
+		Vector2 offset = (Vector2) { ent.position.x - (box.x + box.width * 0.5f), ent.position.y - (box.y + box.height * 0.5f) };
+		ent.position = (Vector2) { pos.x + offset.x, pos.y + offset.y };
 
 		ents_curr[i] = ent;
 	}
 
+	// Initialize action struct
 	BufferAction move_action = (BufferAction) {
 		.type = ACTION_MODIFY,
 		.ent_count = buffer->select_count,
@@ -845,6 +838,7 @@ void BufTranslateMultiple(MapBuffer *buffer, Vector2 pos, Rectangle box) {
 		.ents_curr = ents_curr
 	};
 
+	// Apply to buffer
 	ActionApply(&move_action, buffer);
 }
 
