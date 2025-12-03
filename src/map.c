@@ -673,6 +673,8 @@ void BufRemoveEntity(MapBuffer *buffer, Entity *entity) {
 
 	BufferAction action = (BufferAction) { .type = ACTION_REMOVE, .ent_count = 1, .ents_prev = ents_prev, .ents_curr = ents_curr };	
 	ActionApply(&action, buffer);
+
+	buffer->ent_selected = -1;
 }
 
 void BufTranslateEntity(MapBuffer *buffer, Entity *entity, Vector2 pos) {
